@@ -187,7 +187,7 @@ function QuranIndex() {
             </div>
             <div className="grid gap-3 md:grid-cols-2">
               {sortedMarks.map((b) => (
-                <div key={`${b.surah}:${b.ayah}`} className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4">
+                <div key={`${b.surah}:${b.ayah}`} className="flex min-w-0 items-start gap-3 rounded-2xl border border-border bg-card p-4">
                   <Link
                     to="/quran/$surah"
                     params={{ surah: String(b.surah) }}
