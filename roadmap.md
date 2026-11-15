@@ -85,3 +85,10 @@
 - [x] Bookmarks and saved reading progress (return to specific ayahs, pick up where you left off)
 - [x] Bismillah shown directly below the surah name, above the first ayah, on every surah (incl. Al-Fatihah) like the reference
 - [x] Arabic mushaf pages: 10 ayahs per page for long surahs
+
+## Request 2026-11-15 (11)
+- [ ] With-translation reading also in 10-ayah pages, one page at a time (Previous / Next, swipe, arrow keys)
+- [ ] Save the current 10-ayah page per surah and offer to resume from it
+- [ ] Analytics: page turns and reading-session completion on the 10-ayah pages
+- [ ] AI recitation plan: pick a surah + preferences, get a page-by-page plan with pacing tips (sign-in needed)
+- [ ] Full app audit (attached brief): Phase 1 audit table first, wait for approval before big changes (waiting on user to confirm)
