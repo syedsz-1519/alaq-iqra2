@@ -359,3 +359,9 @@
   border: 1px solid color-mix(in oklch, var(--gold) 35%, var(--border));
   box-shadow: var(--shadow-elegant);
 }
+
+/* Offline Tajweed lesson read by the phone's voice. */
+@utility offline-lesson {
+  background-color: color-mix(in oklch, var(--gold) 8%, var(--background));
+  border: 1px solid color-mix(in oklch, var(--gold) 35%, var(--border));
+}
