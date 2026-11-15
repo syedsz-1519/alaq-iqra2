@@ -1,4 +1,5 @@
 import { KEYS, useStored } from "./storage";
+import { pageOfAyah } from "./mushaf";
 
 export type LastRead = { surah: number; ayah: number; englishName: string; name: string; total: number; at: number };
 export type Bookmark = {
@@ -11,7 +12,13 @@ export type Bookmark = {
   at: number;
 };
 /** Furthest-recent spot reached in each surah, keyed by surah number. */
-export type SurahProgress = { ayah: number; total: number; at: number };
+export type SurahProgress = {
+  ayah: number;
+  total: number;
+  at: number;
+  /** Zero-based 10-ayah page the reader was on (older saves derive it from the ayah). */
+  page?: number;
+};
 export type ProgressMap = Record<string, SurahProgress>;
 export type BookmarkOrder = "recent" | "quran";
 
@@ -34,13 +41,21 @@ export function sortBookmarks(list: Bookmark[], order: BookmarkOrder): Bookmark[
 export function recordProgress(map: ProgressMap, surah: number, ayah: number, total: number, now = Date.now()): ProgressMap {
   const a = Math.min(Math.max(Math.round(ayah), 1), total);
   if (map[surah]?.ayah === a) return map;
-  return { ...map, [surah]: { ayah: a, total, at: now } };
+  return { ...map, [surah]: { ayah: a, total, at: now, page: pageOfAyah(a) } };
 }
 
 /** The ayah to offer "continue from" when reopening a surah: only when partway through. */
 export function resumeAyah(map: ProgressMap, surah: number): number | null {
   const p = map[surah];
   return p && p.ayah > 1 && p.ayah < p.total ? p.ayah : null;
+}
+
+/** The 10-ayah page to reopen in a surah, or null when there is nothing to resume. */
+export function resumePage(map: ProgressMap, surah: number): number | null {
+  const p = map[surah];
+  if (!p || p.ayah >= p.total) return null;
+  const page = p.page ?? pageOfAyah(p.ayah);
+  return page > 0 || p.ayah > 1 ? page : null;
 }
 
 export const isFinished = (p: { ayah: number; total: number } | null | undefined) => Boolean(p && p.ayah >= p.total);
