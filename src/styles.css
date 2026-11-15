@@ -365,3 +365,11 @@
   background-color: color-mix(in oklch, var(--gold) 8%, var(--background));
   border: 1px solid color-mix(in oklch, var(--gold) 35%, var(--border));
 }
+
+/* Name chip under the draggable teacher bubble. */
+@utility bubble-chip {
+  background-color: color-mix(in oklch, var(--card) 92%, transparent);
+  color: var(--foreground);
+  border: 1px solid color-mix(in oklch, var(--gold) 45%, var(--border));
+  box-shadow: var(--shadow-elegant);
+}
