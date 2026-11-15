@@ -1,14 +1,16 @@
-# Alaq - Session Memory & Context
+# Alaq - Comprehensive Project Memory
 
-This document serves as a persistent reference for all analysis, decisions, and findings about the Alaq project across sessions.
+**Last Updated**: November 15, 2026  
+**Status**: Voice Assistants Complete + Core Database Ready  
+**Maintainer**: Kiro AI Assistant
 
 ---
 
 ## Project Overview
 **Name**: Alaq (Islamic Learning App)
 **Type**: Full-stack web application (React + TypeScript + TanStack Start)
-**Domain**: Islamic education (Qur'an, Hadith, Tajweed learning)
-**Status**: Early development with Lovable Cloud migration in progress
+**Domain**: Islamic education (Qur'an, Hadith, Tajweed learning, AI-powered learning)
+**Status**: Core system operational, Voice assistants (Zaid/Zara) deployed, Phase 2 hadith ingestion ready
 
 ---
 
@@ -27,8 +29,17 @@ This document serves as a persistent reference for all analysis, decisions, and 
 ```
 src/
 ├── components/alaq/      # Feature components
+│   ├── zaid-chat-widget.tsx          # Voice assistant UI
+│   ├── zaid-provider.tsx             # Assistant context
+│   ├── app-shell.tsx
+│   ├── audio-player.tsx
+│   ├── daily-hadith.tsx
+│   └── ... (other feature components)
 ├── components/ui/        # Radix UI library
-├── routes/              # Page routes
+├── routes/
+│   ├── __root.tsx                    # Root layout (includes ZaidChatWidget)
+│   ├── api.chat.server.ts            # Chat API endpoint
+│   └── ... (page routes)
 ├── integrations/
 │   ├── supabase/        # Database + auth
 │   └── lovable/         # OAuth integration (TO BE REMOVED)
@@ -36,6 +47,20 @@ src/
 ├── server.ts            # Edge handler
 ├── start.ts             # Middleware
 └── router.tsx           # Route config
+
+scripts/
+├── ingest/
+│   ├── ingest-quran.ts               # Quran data ingestion
+│   ├── ingest-hadith.ts (Phase 2)    # Hadith ingestion
+│   └── ingest-duas.ts (Phase 2)      # Duas ingestion
+
+drizzle/
+├── migrations/
+│   ├── 0000_profiles.sql             # User profiles + auth
+│   ├── 0001_hadith_translations.sql  # Hadith cache table
+│   ├── 0002_profiles_teacher_choice.sql  # Teacher persona selector
+│   └── 0003_zaid_schema.sql (NEW)    # Zaid/Zara voice assistants
+└── schema.ts                         # Type definitions
 ```
 
 ---
