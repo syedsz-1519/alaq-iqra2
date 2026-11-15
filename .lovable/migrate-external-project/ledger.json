@@ -1,18 +1,114 @@
 [
- {"capability":"application code (routes, components, lib, data, styles)","source":"alaq-4-main.zip (Lovable TanStack Start project, same template revision)","outcome":"migrate","status":"in_progress","next_action":"copy source into project"},
- {"capability":"dependencies","source":"package.json (identical pinned TanStack versions)","outcome":"migrate","status":"pending","next_action":"add ai-gateway, cloud-auth-js, supabase-js, vite-plugin-pwa, ws"},
- {"capability":"database schema","source":"drizzle/migrations: profiles (+teacher), hadith_translations, signup trigger","outcome":"migrate","status":"pending","next_action":"enable Lovable Cloud and apply schema"},
- {"capability":"records: profiles","source":"old Lovable Cloud database","outcome":"migrate","status":"pending","next_action":"user to export users + profiles CSV"},
- {"capability":"records: hadith_translations","source":"old Lovable Cloud database (AI translation cache)","outcome":"migrate","status":"pending","next_action":"optional export; regenerates on demand"},
- {"capability":"auth identities","source":"Lovable Cloud email/password + Google","outcome":"migrate","status":"pending","next_action":"recreate sign-in; existing users need export then first-login verification + new password"},
- {"capability":"authorization","source":"RLS own profile; public read translations; server fns require sign-in","outcome":"migrate","status":"pending","next_action":"recreate policies"},
- {"capability":"uploaded file bytes","source":"none; static icons/images in public/","outcome":"migrate","status":"pending","next_action":"copy public/"},
- {"capability":"AI features (Zaid/Zara, recitation check, TTS, hadith translation)","source":"Lovable AI Gateway via LOVABLE_API_KEY","outcome":"preserve","status":"pending","next_action":"verify key available"},
- {"capability":"live voice relay /api/live","source":"src/server.ts + live-vite-plugin.ts","outcome":"preserve","status":"pending","next_action":"verify"},
- {"capability":"external content APIs","source":"AlQuran.cloud, EveryAyah, fawazahmed0 hadith api, Google Fonts","outcome":"preserve","status":"pending","next_action":"verify pages load"},
- {"capability":"PWA / offline","source":"vite-plugin-pwa + manifest","outcome":"preserve","status":"pending","next_action":"active only on published app"},
- {"capability":"public endpoints / webhooks / schedules","source":"only /api/live; no cron","outcome":"preserve","status":"pending","next_action":"none"},
- {"capability":"secrets","source":"LOVABLE_API_KEY (platform-managed); .env excluded","outcome":"preserve","status":"pending","next_action":"verify"},
- {"capability":"cutover","source":"old published app","outcome":"migrate","status":"pending","next_action":"publish this project when ready"},
- {"capability":"verification","source":"tests + browser check","outcome":"migrate","status":"pending","next_action":"run tests and browser checks"}
+ {
+  "capability": "application code (routes, components, lib, data, styles)",
+  "source": "alaq-4-main.zip (Lovable TanStack Start project, same template revision)",
+  "outcome": "migrate",
+  "status": "done",
+  "next_action": "none"
+ },
+ {
+  "capability": "dependencies",
+  "source": "package.json (identical pinned TanStack versions)",
+  "outcome": "migrate",
+  "status": "done",
+  "next_action": "none"
+ },
+ {
+  "capability": "database schema",
+  "source": "drizzle/migrations: profiles (+teacher), hadith_translations, signup trigger",
+  "outcome": "migrate",
+  "status": "done",
+  "next_action": "none"
+ },
+ {
+  "capability": "records: profiles",
+  "source": "old Lovable Cloud database",
+  "outcome": "migrate",
+  "status": "pending",
+  "next_action": "user to export users + profiles CSV"
+ },
+ {
+  "capability": "records: hadith_translations",
+  "source": "old Lovable Cloud database (AI translation cache)",
+  "outcome": "migrate",
+  "status": "pending",
+  "next_action": "optional export; regenerates on demand"
+ },
+ {
+  "capability": "auth identities",
+  "source": "Lovable Cloud email/password + Google",
+  "outcome": "migrate",
+  "status": "pending",
+  "next_action": "email/password, Google and Lovable sign-in enabled; awaiting user export for existing accounts; signed-in flow not yet exercised"
+ },
+ {
+  "capability": "authorization",
+  "source": "RLS own profile; public read translations; server fns require sign-in",
+  "outcome": "migrate",
+  "status": "done",
+  "next_action": "policies applied identically"
+ },
+ {
+  "capability": "uploaded file bytes",
+  "source": "none; static icons/images in public/",
+  "outcome": "migrate",
+  "status": "done",
+  "next_action": "none"
+ },
+ {
+  "capability": "AI features (Zaid/Zara, recitation check, TTS, hadith translation)",
+  "source": "Lovable AI Gateway via LOVABLE_API_KEY",
+  "outcome": "preserve",
+  "status": "pending",
+  "next_action": "requires a signed-in session to verify"
+ },
+ {
+  "capability": "live voice relay /api/live",
+  "source": "src/server.ts + live-vite-plugin.ts",
+  "outcome": "preserve",
+  "status": "pending",
+  "next_action": "verify with a signed-in session"
+ },
+ {
+  "capability": "external content APIs",
+  "source": "AlQuran.cloud, EveryAyah, fawazahmed0 hadith api, Google Fonts",
+  "outcome": "preserve",
+  "status": "verified",
+  "next_action": "pages load with live content"
+ },
+ {
+  "capability": "PWA / offline",
+  "source": "vite-plugin-pwa + manifest",
+  "outcome": "preserve",
+  "status": "pending",
+  "next_action": "active only on published app"
+ },
+ {
+  "capability": "public endpoints / webhooks / schedules",
+  "source": "only /api/live; no cron",
+  "outcome": "preserve",
+  "status": "done",
+  "next_action": "none"
+ },
+ {
+  "capability": "secrets",
+  "source": "LOVABLE_API_KEY (platform-managed); .env excluded",
+  "outcome": "preserve",
+  "status": "verified",
+  "next_action": "LOVABLE_API_KEY present"
+ },
+ {
+  "capability": "cutover",
+  "source": "old published app",
+  "outcome": "migrate",
+  "status": "pending",
+  "next_action": "publish this project when ready"
+ },
+ {
+  "capability": "verification",
+  "source": "tests + browser check",
+  "outcome": "migrate",
+  "status": "in_progress",
+  "next_action": "22 tests pass, 12 pages load with no errors; signed-in checks pending"
+ }
 ]

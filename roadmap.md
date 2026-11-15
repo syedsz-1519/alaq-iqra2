@@ -56,7 +56,7 @@
 - [x] Link preview (share image) shows only the Alaq logo, not the home screen
 - [ ] Two voice teachers: Zaid (male) and Zara (female); user picks one (or by gender) at sign-in/profile
 - [x] Both teachers very polite and humble, speak English, Hindi, Urdu, Telugu, Marathi, Roman Urdu (Hyderabadi)
-- [ ] Import existing profiles, hadith translations and users when the CSV files arrive (waiting on user)
+- [ ] Import existing profiles, hadith translations and users into this project when the CSV files arrive (waiting on user)
 
 ## Request 2026-11-15 (6)
 - [ ] Premium Zaid/Zara bubble that opens the teacher's own page (preferences + lessons); no separate Lessons tab among the main sections
