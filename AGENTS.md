@@ -1,33 +1,10 @@
-<!-- LOVABLE:BEGIN -->
-> [!IMPORTANT]
-> This project is connected to [Lovable](https://lovable.dev). Avoid rewriting
-> published git history — force pushing, or rebasing/amending/squashing commits
-> that are already pushed — as it rewrites history on Lovable's side and the
-> user will likely lose their project history.
->
-> Commits you push to the connected branch sync back to Lovable and show up in
-> the editor, so keep the branch in a working state.
+## Development Guidelines
 
-## What Lovable manages
-
-Rules outside this block are the project's own. Change the pieces below in
-Lovable, not by hand. With the [Lovable MCP](https://mcp.lovable.dev)
-connected, `send_message` asks Lovable to do it; otherwise ask the user to
-use the editor.
-
-- **Database.** Do not add or edit `supabase/migrations/` or `drizzle/`.
-  Ask Lovable to change the schema.
-- **Generated files.** Do not edit a file whose header says it is automatically
-  generated.
-- **AI gateway.** Keep model calls on Lovable's gateway, and keep
-  `LOVABLE_API_KEY` out of browser code.
-- **Connectors.** Lovable provides native connectors. `list_connectors` shows
-  which are enabled; `add_connector` only returns the dashboard link. When a
-  connector is enabled, calls go through the connector gateway and need
-  `LOVABLE_API_KEY`. When Lovable does not provide one, users can bring their
-  own key and store it in Secrets.
-- **Secrets.** Lovable manages them. Do not put secret values in the repo.
-<!-- LOVABLE:END -->
+- **Database changes**: Edit migrations in `drizzle/migrations/` and run `npx drizzle-kit migrate` to apply
+- **Generated files**: Auto-generated files will have headers indicating so — do not edit them directly
+- **API keys**: Keep API keys (like `LOVABLE_API_KEY`) server-side only, never expose in browser bundle
+- **Secrets**: Use environment variables (`.env`) for sensitive data; never commit to git
+- **Code generation**: Use tools like Drizzle Kit for type-safe database access
 
 ## Alaq architecture
 - Religious text is never hand-written: Quran from AlQuran.cloud, recitations from EveryAyah.com, hadith from fawazahmed0/hadith-api, duas from the Hisnul Muslim snapshot in `src/data/duas.json` — keeps every text traceable to a cited source (shown on /sources).
