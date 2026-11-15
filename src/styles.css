@@ -323,11 +323,14 @@
   color: var(--paper-ink);
   background-color: var(--paper);
   border-style: solid;
-  border-width: 2.25rem;
+  border-width: 1.4rem;
   border-image-source: url("/images/mushaf-frame.jpg");
   border-image-slice: 192 fill;
   border-image-repeat: round;
   box-shadow: var(--shadow-elegant);
+  @media (min-width: 640px) {
+    border-width: 2.25rem;
+  }
   @media (min-width: 768px) {
     border-width: 3.5rem;
   }
@@ -358,4 +361,23 @@
   background-image: var(--gradient-card);
   border: 1px solid color-mix(in oklch, var(--gold) 35%, var(--border));
   box-shadow: var(--shadow-elegant);
+}
+
+/* Offline Tajweed lesson read by the phone's voice. */
+@utility offline-lesson {
+  background-color: color-mix(in oklch, var(--gold) 8%, var(--background));
+  border: 1px solid color-mix(in oklch, var(--gold) 35%, var(--border));
+}
+
+/* Name chip under the draggable teacher bubble. */
+@utility bubble-chip {
+  background-color: color-mix(in oklch, var(--card) 92%, transparent);
+  color: var(--foreground);
+  border: 1px solid color-mix(in oklch, var(--gold) 45%, var(--border));
+  box-shadow: var(--shadow-elegant);
+}
+
+/* Gilded rule that closes the surah opening (name + Bismillah) before the first ayah. */
+@utility bismillah-rule {
+  background-image: linear-gradient(90deg, transparent, var(--gold), transparent);
 }

@@ -69,8 +69,14 @@
 
 ## Request 2026-11-15 (8)
 - [ ] Ornate mushaf pages only for Arabic-only reading; better toggles for the translation view
-- [ ] Zaid bubble button that can be dragged anywhere on screen
+- [x] Zaid bubble button that can be dragged anywhere on screen
 - [ ] Use Zaid outside Alaq ("widget"): home-screen shortcut straight to Zaid (true OS widgets need a native app)
 - [ ] Zara shown as "coming soon" (female voice not ready)
 - [ ] Zaid usable offline (lessons and drills without internet; live AI conversation needs internet)
 - [ ] Run at https://alaq-iqra.vercel.app (outside Lovable hosting — explain options)
+
+## Request 2026-11-15 (9)
+- [x] Reading section: Bismillah placed directly below the surah name (as the opening pledge), checked across surahs
+- [x] Smoother app flow and properly responsive mobile view
+- [x] Zaid's Tajweed lessons play offline using the phone's built-in voice
+- [x] Draggable Zaid voice bubble that can be moved anywhere on screen
