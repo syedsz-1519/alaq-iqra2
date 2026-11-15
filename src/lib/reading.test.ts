@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isFinished, recordProgress, resumeAyah, sortBookmarks, toggleBookmark, type Bookmark } from "./reading";
+import { isFinished, recordProgress, resumeAyah, resumePage, sortBookmarks, toggleBookmark, type Bookmark } from "./reading";
 
 describe("reading progress", () => {
   it("remembers a separate spot for each surah", () => {
@@ -34,5 +34,22 @@ describe("bookmark order", () => {
     expect(sortBookmarks(list, "recent").map((x) => x.at)).toEqual([3, 2, 1]);
     expect(sortBookmarks(list, "quran").map((x) => `${x.surah}:${x.ayah}`)).toEqual(["1:5", "2:10", "2:255"]);
     expect(toggleBookmark(list, b(2, 255, 0))).toHaveLength(2);
+  });
+});
+
+describe("saved 10-ayah page", () => {
+  it("saves the page the reader is on in each surah", () => {
+    const m = recordProgress({}, 2, 25, 286, 1);
+    expect(m[2]?.page).toBe(2); // ayahs 21–30
+    expect(recordProgress(m, 2, 30, 286, 2)[2]?.page).toBe(2);
+    expect(recordProgress(m, 2, 31, 286, 3)[2]?.page).toBe(3);
+  });
+
+  it("reopens the saved page, or nothing when the surah is finished or untouched", () => {
+    expect(resumePage({ 2: { ayah: 45, total: 286, at: 1, page: 4 } }, 2)).toBe(4);
+    expect(resumePage({ 2: { ayah: 45, total: 286, at: 1 } }, 2)).toBe(4); // older save without page
+    expect(resumePage({ 2: { ayah: 1, total: 286, at: 1, page: 0 } }, 2)).toBeNull();
+    expect(resumePage({ 112: { ayah: 4, total: 4, at: 1, page: 0 } }, 112)).toBeNull();
+    expect(resumePage({}, 36)).toBeNull();
   });
 });

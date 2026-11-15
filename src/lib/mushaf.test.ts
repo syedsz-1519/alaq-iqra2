@@ -29,3 +29,15 @@ describe("mushaf pages", () => {
     expect(paginate(range(11))).toHaveLength(2);
   });
 });
+
+describe("page lookup", () => {
+  it("finds the page for an ayah and the ayahs on a page", async () => {
+    const { pageOfAyah, pageCount, pageRange } = await import("./mushaf");
+    expect(pageOfAyah(1)).toBe(0);
+    expect(pageOfAyah(10)).toBe(0);
+    expect(pageOfAyah(11)).toBe(1);
+    expect(pageCount(286)).toBe(29);
+    expect(pageCount(7)).toBe(1);
+    expect(pageRange(28, 286)).toEqual({ from: 281, to: 286 });
+  });
+});

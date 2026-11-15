@@ -15,3 +15,15 @@ export function paginate<T extends PageVerse>(verses: T[], perPage = AYAHS_PER_P
   for (let i = 0; i < verses.length; i += size) pages.push(verses.slice(i, i + size));
   return pages;
 }
+
+/** Zero-based page that holds this ayah. */
+export const pageOfAyah = (ayah: number, perPage = AYAHS_PER_PAGE) => Math.max(0, Math.floor((ayah - 1) / perPage));
+
+/** Number of 10-ayah pages in a surah. */
+export const pageCount = (totalAyahs: number, perPage = AYAHS_PER_PAGE) => Math.max(1, Math.ceil(totalAyahs / perPage));
+
+/** First and last ayah on a zero-based page. */
+export function pageRange(page: number, totalAyahs: number, perPage = AYAHS_PER_PAGE) {
+  const from = page * perPage + 1;
+  return { from, to: Math.min(totalAyahs, from + perPage - 1) };
+}
