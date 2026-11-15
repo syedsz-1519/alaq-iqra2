@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { BookOpen, Headphones, Play } from "lucide-react";
-import { useLastRead } from "@/lib/reading";
+import { isFinished, useLastRead } from "@/lib/reading";
 import { reciterName } from "@/lib/quran";
 import { useAudioPlayer } from "./audio-player";
 import { cn } from "@/lib/utils";
@@ -9,11 +9,13 @@ export function ContinueReadingCard({ className }: { className?: string }) {
   const [last] = useLastRead();
   if (!last) return null;
   const pct = Math.round((last.ayah / last.total) * 100);
+  // Finished a surah: carry on with the next one.
+  const next = isFinished(last) && last.surah < 114 ? last.surah + 1 : null;
   return (
     <Link
       to="/quran/$surah"
-      params={{ surah: String(last.surah) }}
-      search={{ ayah: last.ayah }}
+      params={{ surah: String(next ?? last.surah) }}
+      search={next ? {} : { ayah: last.ayah }}
       className={cn(
         "flex items-center gap-4 rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-secondary/60",
         className,
@@ -25,7 +27,7 @@ export function ContinueReadingCard({ className }: { className?: string }) {
       <div className="min-w-0 flex-1">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Continue reading</p>
         <p className="truncate font-display font-semibold">
-          {last.englishName} · Ayah {last.ayah}
+          {next ? `Finished ${last.englishName} · Start Surah ${next}` : `${last.englishName} · Ayah ${last.ayah} of ${last.total}`}
         </p>
         <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-muted">
           <div className="h-full bg-primary" style={{ width: `${pct}%` }} />
