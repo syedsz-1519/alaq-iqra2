@@ -84,6 +84,9 @@ function SurahError() {
 
 const BISMILLAH = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
 
+/** The chosen Arabic size, scaled down on narrow phones so a line never overflows the page. */
+const arabicFont = (size: number, vwPerPx: number) => `min(${size}px, ${(size * vwPerPx).toFixed(2)}vw)`;
+
 type PageRow = VerseRow & { translation?: string | undefined };
 
 function SurahReader() {
@@ -104,6 +107,13 @@ function SurahReader() {
     if (player.voiceTranslation !== "none") player.setVoiceTranslation(l);
   };
   const { data: extraData } = useQuery(extraTranslationQuery(lang, n));
+  // The Bismillah's meaning comes from the same translation's Al-Fatihah 1:1, never typed by hand.
+  const { data: fatiha } = useQuery({ ...surahQuery(1), enabled: data.bismillah && view === "translated" });
+  const { data: fatihaExtra } = useQuery({
+    ...extraTranslationQuery(lang, 1),
+    enabled: data.bismillah && view === "translated" && Boolean(LANGS[lang].edition),
+  });
+  const bismillahMeaning = lang === "en" ? fatiha?.verses[0]?.en : lang === "ur" ? fatiha?.verses[0]?.ur : fatihaExtra?.[0];
   const [bookmarks, setBookmarks] = useBookmarks();
   const { meta, verses } = data;
 
@@ -219,9 +229,9 @@ function SurahReader() {
         <QuranSections active="read" surah={n} />
       </div>
 
-      <div className="sticky top-16 z-20 -mx-4 mt-4 space-y-2 border-b border-border/60 bg-background/90 px-4 py-2.5 backdrop-blur">
-        <div className="flex flex-wrap items-center gap-2">
-          <div role="group" aria-label="Reading view" className="inline-flex h-9 items-center rounded-full border border-border bg-card p-0.5 text-xs font-medium">
+      <div className="sticky top-16 z-20 -mx-4 mt-3 border-b border-border/60 bg-background/90 px-4 py-2 backdrop-blur">
+        <div className="flex items-center gap-2">
+          <div role="group" aria-label="Reading view" className="inline-flex h-9 shrink-0 items-center rounded-full border border-border bg-card p-0.5 text-xs font-medium">
             {(["arabic", "translated"] as const).map((v) => (
               <button
                 key={v}
@@ -229,19 +239,20 @@ function SurahReader() {
                 aria-pressed={view === v}
                 onClick={() => setView(v)}
                 className={cn(
-                  "inline-flex h-8 items-center gap-1.5 rounded-full px-3.5 transition-colors",
+                  "inline-flex h-8 items-center gap-1.5 rounded-full px-3 transition-colors",
                   view === v ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {v === "arabic" ? <BookOpen className="size-3.5" /> : <BookOpenText className="size-3.5" />}
-                {v === "arabic" ? "Arabic only" : "With translation"}
+                <span className="sm:hidden">{v === "arabic" ? "Arabic" : "Translated"}</span>
+                <span className="hidden sm:inline">{v === "arabic" ? "Arabic only" : "With translation"}</span>
               </button>
             ))}
           </div>
           <Select value={lang} onValueChange={(v) => setLang(v as LangId)}>
-            <SelectTrigger aria-label="Translation language" className="h-9 w-auto min-w-40 gap-2 rounded-full bg-card text-xs">
-              <Languages className="size-3.5 text-gold" />
-              <SelectValue />
+            <SelectTrigger aria-label="Translation language" className="h-9 min-w-0 flex-1 gap-1.5 rounded-full bg-card px-3 text-xs sm:w-auto sm:min-w-40 sm:flex-none">
+              <Languages className="size-3.5 shrink-0 text-gold" />
+              <span className="truncate"><SelectValue /></span>
             </SelectTrigger>
             <SelectContent>
               {LANG_IDS.map((l) => (
@@ -254,62 +265,59 @@ function SurahReader() {
           </Select>
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="h-9 rounded-full bg-card text-xs" aria-label="Arabic text size">
-                <Settings2 /> Aa
+              <Button variant="outline" size="icon" className="size-9 shrink-0 rounded-full bg-card" aria-label="Reading options: text size, go to surah or ayah">
+                <Settings2 />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-64">
-              <p className="mb-3 text-sm font-medium">Arabic text size</p>
-              <Slider
-                min={22}
-                max={52}
-                step={2}
-                value={[settings.arabicSize]}
-                onValueChange={([v]) => setSettings((p) => ({ ...DEFAULT_SETTINGS, ...p, arabicSize: v ?? DEFAULT_SETTINGS.arabicSize }))}
-              />
-              <p className="quran-text mt-3 text-center" style={{ fontSize: settings.arabicSize }}>
-                ٱلْحَمْدُ لِلَّهِ
-              </p>
+            <PopoverContent align="end" className="w-72 space-y-4">
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Go to</p>
+                <div className="flex gap-2">
+                  <Select value={String(n)} onValueChange={(v) => navigate({ to: "/quran/$surah", params: { surah: v }, search: {} })}>
+                    <SelectTrigger aria-label="Go to surah" className="h-9 min-w-0 flex-1 bg-card text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-80">
+                      {surahs.map((s) => (
+                        <SelectItem key={s.number} value={String(s.number)}>
+                          {s.number}. {s.englishName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={targetAyah ? String(targetAyah) : ""} onValueChange={(v) => navigate({ search: { ayah: Number(v) }, replace: true })}>
+                    <SelectTrigger aria-label="Go to ayah" className="h-9 w-24 bg-card text-xs">
+                      <SelectValue placeholder="Ayah" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-72">
+                      {verses.map((v) => (
+                        <SelectItem key={v.numberInSurah} value={String(v.numberInSurah)}>
+                          Ayah {v.numberInSurah}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div>
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Arabic text size</p>
+                <Slider
+                  min={22}
+                  max={52}
+                  step={2}
+                  value={[settings.arabicSize]}
+                  onValueChange={([v]) => setSettings((p) => ({ ...DEFAULT_SETTINGS, ...p, arabicSize: v ?? DEFAULT_SETTINGS.arabicSize }))}
+                />
+                <p className="quran-text mt-3 text-center" style={{ fontSize: settings.arabicSize }}>
+                  ٱلْحَمْدُ لِلَّهِ
+                </p>
+              </div>
+              <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
+                <TextSavedBadge url={surahTextUrl(n)} />
+                <span className="truncate text-[11px] text-muted-foreground">{LANGS[lang].translator}</span>
+              </div>
             </PopoverContent>
           </Popover>
-          <div className="ml-auto">
-            <TextSavedBadge url={surahTextUrl(n)} />
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Select
-            value={String(n)}
-            onValueChange={(v) => navigate({ to: "/quran/$surah", params: { surah: v }, search: {} })}
-          >
-            <SelectTrigger aria-label="Go to surah" className="h-8 w-44 bg-card text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="max-h-80">
-              {surahs.map((s) => (
-                <SelectItem key={s.number} value={String(s.number)}>
-                  {s.number}. {s.englishName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={targetAyah ? String(targetAyah) : ""}
-            onValueChange={(v) => navigate({ search: { ayah: Number(v) }, replace: true })}
-          >
-            <SelectTrigger aria-label="Go to ayah" className="h-8 w-28 bg-card text-xs">
-              <SelectValue placeholder="Ayah" />
-            </SelectTrigger>
-            <SelectContent className="max-h-72">
-              {verses.map((v) => (
-                <SelectItem key={v.numberInSurah} value={String(v.numberInSurah)}>
-                  Ayah {v.numberInSurah}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <p className="ml-auto text-[11px] text-muted-foreground">
-            {LANGS[lang].translator}
-          </p>
         </div>
       </div>
 
@@ -320,7 +328,7 @@ function SurahReader() {
             aria-label={paged ? `Page ${pi + 1} of ${pages.length}` : `Surah ${meta.englishName} with translation`}
             className={paged ? "mushaf-page min-h-[28rem]" : "reading-card rounded-[1.75rem]"}
           >
-            <div className={cn("flex flex-col", paged ? "px-3 py-4 md:px-8 md:py-6" : "px-5 py-6 md:px-10 md:py-9")}>
+            <div className={cn("flex flex-col", paged ? "px-1.5 py-3 sm:px-3 sm:py-4 md:px-8 md:py-6" : "px-4 py-5 sm:px-5 sm:py-6 md:px-10 md:py-9")}>
               {paged && (
                 <div className="flex items-center justify-between border-b border-gold/40 pb-1.5 text-[11px] text-paper-muted">
                   <span className="font-display">{meta.englishName}</span>
@@ -329,25 +337,43 @@ function SurahReader() {
               )}
 
               {pi === 0 && (
-                <div className={paged ? "mt-5" : ""}>
-                  <div className="surah-banner rounded-xl px-4 py-3 text-center">
-                    <p className="quran-text text-3xl leading-[1.6] md:text-4xl">{meta.name}</p>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.25em] opacity-90">
+                <header className={paged ? "mt-4 md:mt-5" : ""}>
+                  <div className="surah-banner rounded-xl px-3 py-3 text-center sm:px-4">
+                    <p className="quran-text text-[1.75rem] leading-[1.6] sm:text-3xl md:text-4xl">{meta.name}</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] opacity-90 sm:tracking-[0.25em]">
                       Surah {n} · {meta.englishName} · {meta.revelationType} · {meta.numberOfAyahs} ayahs
                     </p>
                   </div>
                   <h1 className="sr-only">
                     Surah {meta.englishName} ({meta.englishNameTranslation})
                   </h1>
-                  {data.bismillah && (
-                    <p className="quran-text mt-5 text-center text-3xl text-paper-ink md:text-[2.1rem]">{BISMILLAH}</p>
-                  )}
-                </div>
+                  {data.bismillah ? (
+                    <div className="mt-4 text-center" aria-label="Bismillah — the opening of the surah">
+                      <p lang="ar" dir="rtl" className="quran-text text-[1.6rem] leading-[1.9] text-paper-ink sm:text-3xl md:text-[2.1rem]">
+                        {BISMILLAH}
+                      </p>
+                      {!paged && bismillahMeaning && (
+                        <p
+                          dir={LANGS[lang].dir}
+                          className={cn(
+                            "mx-auto mt-1 max-w-md text-paper-muted",
+                            lang === "ur" ? "urdu-text text-base" : "text-sm italic",
+                          )}
+                        >
+                          {bismillahMeaning}
+                        </p>
+                      )}
+                      <div aria-hidden className="bismillah-rule mx-auto mt-3 h-px w-40" />
+                    </div>
+                  ) : n === 9 ? (
+                    <p className="mt-4 text-center text-xs text-paper-muted">Surah At-Tawbah begins without the Bismillah.</p>
+                  ) : null}
+                </header>
               )}
 
               <div className="mt-5 flex-1">
                 {view === "arabic" ? (
-                  <p dir="rtl" className="quran-text text-justify leading-[2.6] [text-align-last:center]" style={{ fontSize: settings.arabicSize }}>
+                  <p dir="rtl" className="quran-text text-justify leading-[2.6] [text-align-last:center]" style={{ fontSize: arabicFont(settings.arabicSize, 0.235) }}>
                     {page.map((v) => {
                       const active = currentAyah === v.numberInSurah;
                       return (
@@ -390,7 +416,7 @@ function SurahReader() {
                             targetAyah === v.numberInSurah && !active && "-mx-3 rounded-xl bg-gold/10 px-3",
                           )}
                         >
-                          <p dir="rtl" className="quran-text text-right leading-[2.2]" style={{ fontSize: settings.arabicSize }}>
+                          <p dir="rtl" className="quran-text text-right leading-[2.2]" style={{ fontSize: arabicFont(settings.arabicSize, 0.26) }}>
                             {v.arabic} <span className="ayah-mark whitespace-nowrap text-[0.7em] text-gold">﴿{toArabicDigits(v.numberInSurah)}﴾</span>
                           </p>
                           {v.translation ? (
@@ -430,6 +456,12 @@ function SurahReader() {
                   </ol>
                 )}
               </div>
+
+              {!paged && (
+                <p className="mt-6 border-t border-gold/30 pt-3 text-center text-[11px] text-paper-muted">
+                  {LANGS[lang].label} translation: {LANGS[lang].translator}
+                </p>
+              )}
 
               {paged && <div className="mt-6 flex justify-center">
                 <span className="page-medallion grid size-9 place-items-center rounded-full font-display text-sm font-semibold" title={`Page ${pi + 1} of ${pages.length}`}>
