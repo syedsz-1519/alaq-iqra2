@@ -790,3 +790,247 @@ npm run preview              # Local preview of build
 **Next Review**: When significant architecture changes occur
 **Archive**: Keep all session memory documents in project root for team reference
 
+
+
+---
+
+## Investor & Fundraising Materials (CONFIDENTIAL)
+
+### New Documents Created (November 15, 2026)
+
+**Location**: Protected in `.gitignore` (will not commit to git)
+
+#### 1. INVESTOR_PITCH_GUIDE.md (2,500+ lines)
+**Comprehensive guide to pitching Alaq for Series A funding**
+
+Contents:
+- **Executive Summary**: TAM ($45B), SAM ($2-3B), business model
+- **Where to Pitch** (9 categories, 50+ investors pre-researched):
+  - Islamic/Middle East VCs: Wamda, 500Global, Tahwin, Bawwab
+  - Global EdTech VCs: Lightspeed, Bessemer, Sequoia
+  - Emerging Market VCs: Accel India, Elevation, Translink
+  - AI-First VCs: Sapphire, Kleiner Perkins, Emergence
+  - Angel Investors: AngelList, Gust, LinkedIn
+  - Accelerators: Y Combinator, 500 Startups, Techstars, Plug and Play
+  - Corporate VCs: Google, Microsoft, Amazon, Coursera
+  - Government Grants: World Bank, Gates Foundation, UNESCO
+  - Debt Financing: Clearco, Stripe Capital, Bank loans
+
+- **Pitch Roadmap** (4 phases, 20 weeks):
+  - Phase 1 (Weeks 1-4): Material prep (deck, 1-pager, exec summary)
+  - Phase 2 (Weeks 5-8): Soft launch (friends & family, angels)
+  - Phase 3 (Weeks 9-20): Main fundraising (VCs, accelerators)
+  - Phase 4 (Weeks 21+): Post-fundraising execution
+
+- **Pitch Guidelines & Rules**:
+  - Golden rules (Story > Numbers, Know Your Investor, Honesty > Hype)
+  - 10 rookie mistakes to avoid
+  - Engagement best practices during & after pitch
+
+- **Pitch Deck Structure** (15 slides):
+  - Title, Problem, Market, Solution, Product, Model, Traction, Unit Economics
+  - GTM, Competitive Advantage, Team, Financials, Ask, Vision, CTA
+
+- **Key Metrics**:
+  - User: 10K DAU, 60% D7, 40% D30
+  - Monetization: $10K MRR, 8% premium, $2.50 ARPU
+  - Engagement: 25-min session, 4.5x/week, 72 NPS
+  - Unit economics: LTV $120, CAC $0.50, 240x ratio
+
+- **Common Q&A** (8 prepared answers):
+  - Unfair advantage? (Founder conviction + data + economics)
+  - Competition? (Traditional tutoring, generic EdTech, Islamic apps)
+  - User acquisition? (3-phase: organic, partnerships, influencers)
+  - Monetization? (Free tier, $3-5 premium, $500-2K B2B)
+  - Capital use? (50% team, 30% marketing, 20% ops)
+  - Profitability? (Q2 Year 2)
+  - Why bet on you? (Founder-market fit, proven model, right timing)
+  - Key risks? (Regulatory, competitive, unit economics)
+
+- **Pro Tips** from successful founders:
+  - Bilal Baig (Careem): Pitch market, not product
+  - Iqbal Quadir (Grameenphone): Build one community first
+  - Faisal Alibhai (African EdTech): Live in your market
+
+- **Red Flags**: 10 mistakes that kill fundraising
+- **Fundraising Timeline**: Week-by-week breakdown
+
+#### 2. INVESTOR_ROADMAP.md (1,500+ lines)
+**Month-by-month execution plan with tactics**
+
+Contents:
+- **Month-by-Month Plan**:
+  - Month 1: Prep materials (deck, research, practice)
+  - Month 2: Soft launch (F&F 20-30 pitches, angels 20-30 pitches)
+  - Month 3: Tier 2 VCs (40-50 meetings, accelerator apps)
+  - Month 4: Negotiation & closing (choose lead, due diligence, wire transfer)
+
+- **13-Week Sprint** (compressed timeline if fast-track):
+  - Week 1: Prep, Week 2: F&F, Week 3: Warm intros, Week 4: VCs
+  - Week 5: Negotiate, Week 6: Diligence, Week 7: Close
+
+- **Investor Tracking Template**:
+  - CSV format (name, fund, email, focus, ticket, status)
+  - Notion template (15+ columns)
+  - Status pipeline: Pipeline → Warm Intro → Meeting → Follow-up → Negotiating → Closed
+
+- **Email Templates** (4 ready-to-use):
+  - Warm intro request (to mutual connection)
+  - Cold email to investor (personalized subject line)
+  - Follow-up after meeting (with updates)
+  - Term sheet comparison (asking for advice)
+
+- **Pitch Variations** (5 versions for different investors):
+  - EdTech VCs: Lead with market opportunity
+  - Islamic/Impact: Lead with social mission
+  - Emerging Market: Lead with playbook
+  - AI/LLM: Lead with technology differentiation
+  - Accelerators: Lead with coachability & execution
+
+- **Milestones & Metrics to Hit**:
+  - DAU growth: 10K → 12K → 15K → 20K (months 1-4)
+  - MRR growth: $10K → $12K → $15K → $20K (months 1-4)
+  - Premium subscribers: 4K → 4.8K → 6K → 8K
+  - Team hiring plan: content manager → engineer → engineer → PM
+
+- **Contingency Plans** (5 scenarios):
+  - No traction growth: Double down on retention, viral feature, PR push
+  - Can't get warm intros: Attend events, PR coverage, reach out to assistants
+  - High valuation demands: Multiple offers, strong numbers, willingness to walk
+  - Can't close in 4 months: Hard deadline, urgency, bootstrap longer
+  - Acquisition offer: Evaluate vs. fundraising, think long-term
+
+- **Success Scenarios**:
+  - Best case (8 weeks): F&F round + VC term sheet
+  - Base case (12-14 weeks): Multi-investor round, normal timeline
+  - Worst case (16-20 weeks): Smaller round but still viable
+
+### How to Use These Documents
+
+**When to Use**: After achieving product-market fit (1K+ users, clear retention)
+
+**Step 1**: Read `INVESTOR_PITCH_GUIDE.md` completely
+- Understand investor landscape
+- Prepare common Q&A answers
+- Research 50+ target investors
+
+**Step 2**: Create investor tracking spreadsheet
+- Use template from `INVESTOR_ROADMAP.md`
+- Fill in investors from "Where to Pitch" section
+- Find warm intro paths
+
+**Step 3**: Create pitch deck (15 slides)
+- Use structure from `INVESTOR_PITCH_GUIDE.md`
+- Include latest metrics
+- Practice 20+ times
+
+**Step 4**: Execute month-by-month roadmap
+- Follow `INVESTOR_ROADMAP.md` timeline
+- Use email templates for outreach
+- Track each investor in CRM
+- Adjust pitch based on feedback (use variations)
+
+**Step 5**: Handle different scenarios
+- Accelerator interested? See "Pitch Variation #5"
+- Struggling with traction? See "Contingency Plans"
+- Want fast close? See "13-Week Sprint"
+
+### Key Statistics
+
+**Investors Researched**: 50+
+**Categories Covered**: 9 (VCs, angels, accelerators, etc.)
+**Pitch Variations**: 5 (customized for different investor types)
+**Email Templates**: 4 (ready-to-use)
+**Questions Answered**: 8 (common investor questions)
+**Timeline Options**: 3 (best, base, worst case)
+**Contingency Plans**: 5 (if things go wrong)
+
+### Important Notes
+
+🔒 **CONFIDENTIAL**
+- These are business strategy documents
+- Protected in `.gitignore` (won't commit to git)
+- Share only with founding team & trusted advisors
+
+📝 **CUSTOMIZABLE**
+- Update investor list as you research
+- Update metrics monthly (traction grows)
+- Customize pitch variations per investor
+- Add your warm intro paths
+
+⚡ **READY TO USE**
+- Email templates: Copy-paste directly
+- Pitch structure: Use for deck outline
+- Timeline: Follow week-by-week
+- Metrics: Update with your actual numbers
+
+### Fundraising Checklist
+
+Before first pitch:
+- [ ] Read both investor documents completely
+- [ ] Create 50+ investor database
+- [ ] Create pitch deck (15 slides)
+- [ ] Write 1-pager (A4 PDF)
+- [ ] Write executive summary (2 pages)
+- [ ] Practice pitch 20+ times
+- [ ] Record yourself (review & improve)
+- [ ] Get mentor sign-off
+- [ ] Setup Calendly (meeting scheduling)
+- [ ] Prepare financial model (3-year projections)
+
+During fundraising:
+- [ ] Follow month-by-month roadmap
+- [ ] Track every investor in CRM
+- [ ] Send thank you within 24 hours of pitch
+- [ ] Follow up after 1 week if no response
+- [ ] Update deck monthly with new metrics
+- [ ] Keep building product (don't stop innovation)
+- [ ] Hit milestone targets (traction matters most)
+
+### Estimated Outcome
+
+**If followed correctly:**
+- Pitches delivered: 50+
+- Serious conversations: 10-15
+- Term sheets received: 3-5
+- Capital raised: $500K-$1M
+- Timeline: 12-16 weeks
+- Dilution: 15-20% per round
+- Post-money valuation: $3-5M
+
+### What Investors Care About (In Order)
+
+1. **Traction** (50% of decision): DAU, retention, engagement
+2. **Team** (25% of decision): Founder fit, execution track record
+3. **Market** (15% of decision): TAM, SAM, growth potential
+4. **Product** (10% of decision): UI/UX, differentiation
+
+**Lesson**: Get traction first. Pitch second.
+
+### Next Actions
+
+After setup:
+1. Month 1: Materials ready (deck, 1-pager, exec summary)
+2. Month 2: F&F round launched (friends & family)
+3. Month 3: VC meetings (50+ pitches)
+4. Month 4: Term sheets & closing
+5. Month 5+: Team hiring & execution
+
+### Additional Resources
+
+**Books**:
+- "Venture Deals" — Brad Feld & Jason Mendelson
+- "The Art of the Start 2.0" — Guy Kawasaki
+- "Blitzscaling" — Reid Hoffman
+
+**Communities**:
+- YC Startup School (free)
+- Founder Institute
+- 500 Global Community
+- Islamic Tech community (LinkedIn, Facebook)
+
+**Tools**:
+- AngelList (investor network)
+- Crunchbase Pro (investor research)
+- Calendly (scheduling)
+- Notion (CRM template)
