@@ -68,10 +68,7 @@ export function ZaidBubble() {
   };
   const onKey = (e: KeyboardEvent<HTMLButtonElement>) => {
     const step = 0.08;
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      onBubble();
-    } else if (e.key === "ArrowUp") setStored({ ...spot, y: Math.max(0, spot.y - step) });
+    if (e.key === "ArrowUp") setStored({ ...spot, y: Math.max(0, spot.y - step) });
     else if (e.key === "ArrowDown") setStored({ ...spot, y: Math.min(1, spot.y + step) });
     else if (e.key === "ArrowLeft") setStored({ ...spot, side: "left" });
     else if (e.key === "ArrowRight") setStored({ ...spot, side: "right" });
@@ -191,7 +188,7 @@ export function ZaidBubble() {
         onPointerCancel={() => setDrag(null)}
         onKeyDown={onKey}
         onClick={(e) => {
-          // Screen readers and switch access send a click without pointer events.
+          // Keyboard, screen readers and switch access send a click without pointer movement.
           if (e.detail === 0) onBubble();
         }}
         aria-label={`${inCall ? (open ? `Hide the call with ${name}` : `Show the call with ${name}`) : `Open ${name}, your voice teacher`}. Drag, or use arrow keys, to move.`}
