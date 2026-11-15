@@ -10,33 +10,297 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AssignmentsRouteImport } from './routes/assignments'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as DhikrRouteImport } from './routes/dhikr'
+import { Route as LearnRouteImport } from './routes/learn'
+import { Route as NamesRouteImport } from './routes/names'
+import { Route as OfflineRouteImport } from './routes/offline'
+import { Route as RepeatRouteImport } from './routes/repeat'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SourcesRouteImport } from './routes/sources'
+import { Route as ZaidRouteImport } from './routes/zaid'
+import { Route as DuasIndexRouteImport } from './routes/duas.index'
+import { Route as DuasIdRouteImport } from './routes/duas.$id'
+import { Route as HadithIndexRouteImport } from './routes/hadith.index'
+import { Route as ListenIndexRouteImport } from './routes/listen.index'
+import { Route as ListenSurahRouteImport } from './routes/listen.$surah'
+import { Route as QuranIndexRouteImport } from './routes/quran.index'
+import { Route as QuranSurahRouteImport } from './routes/quran.$surah'
+import { Route as HadithCollectionIndexRouteImport } from './routes/hadith.$collection.index'
+import { Route as HadithCollectionSectionRouteImport } from './routes/hadith.$collection.$section'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AssignmentsRoute = AssignmentsRouteImport.update({
+  id: '/assignments',
+  path: '/assignments',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DhikrRoute = DhikrRouteImport.update({
+  id: '/dhikr',
+  path: '/dhikr',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearnRoute = LearnRouteImport.update({
+  id: '/learn',
+  path: '/learn',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NamesRoute = NamesRouteImport.update({
+  id: '/names',
+  path: '/names',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OfflineRoute = OfflineRouteImport.update({
+  id: '/offline',
+  path: '/offline',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RepeatRoute = RepeatRouteImport.update({
+  id: '/repeat',
+  path: '/repeat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SourcesRoute = SourcesRouteImport.update({
+  id: '/sources',
+  path: '/sources',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ZaidRoute = ZaidRouteImport.update({
+  id: '/zaid',
+  path: '/zaid',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DuasIndexRoute = DuasIndexRouteImport.update({
+  id: '/duas/',
+  path: '/duas/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DuasIdRoute = DuasIdRouteImport.update({
+  id: '/duas/$id',
+  path: '/duas/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HadithIndexRoute = HadithIndexRouteImport.update({
+  id: '/hadith/',
+  path: '/hadith/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ListenIndexRoute = ListenIndexRouteImport.update({
+  id: '/listen/',
+  path: '/listen/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ListenSurahRoute = ListenSurahRouteImport.update({
+  id: '/listen/$surah',
+  path: '/listen/$surah',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuranIndexRoute = QuranIndexRouteImport.update({
+  id: '/quran/',
+  path: '/quran/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuranSurahRoute = QuranSurahRouteImport.update({
+  id: '/quran/$surah',
+  path: '/quran/$surah',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HadithCollectionIndexRoute = HadithCollectionIndexRouteImport.update({
+  id: '/hadith/$collection/',
+  path: '/hadith/$collection/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HadithCollectionSectionRoute = HadithCollectionSectionRouteImport.update({
+  id: '/hadith/$collection/$section',
+  path: '/hadith/$collection/$section',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/assignments': typeof AssignmentsRoute
+  '/auth': typeof AuthRoute
+  '/dhikr': typeof DhikrRoute
+  '/learn': typeof LearnRoute
+  '/names': typeof NamesRoute
+  '/offline': typeof OfflineRoute
+  '/repeat': typeof RepeatRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/settings': typeof SettingsRoute
+  '/sources': typeof SourcesRoute
+  '/zaid': typeof ZaidRoute
+  '/duas/$id': typeof DuasIdRoute
+  '/listen/$surah': typeof ListenSurahRoute
+  '/quran/$surah': typeof QuranSurahRoute
+  '/duas/': typeof DuasIndexRoute
+  '/hadith/': typeof HadithIndexRoute
+  '/listen/': typeof ListenIndexRoute
+  '/quran/': typeof QuranIndexRoute
+  '/hadith/$collection/$section': typeof HadithCollectionSectionRoute
+  '/hadith/$collection/': typeof HadithCollectionIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/assignments': typeof AssignmentsRoute
+  '/auth': typeof AuthRoute
+  '/dhikr': typeof DhikrRoute
+  '/learn': typeof LearnRoute
+  '/names': typeof NamesRoute
+  '/offline': typeof OfflineRoute
+  '/repeat': typeof RepeatRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/settings': typeof SettingsRoute
+  '/sources': typeof SourcesRoute
+  '/zaid': typeof ZaidRoute
+  '/duas/$id': typeof DuasIdRoute
+  '/listen/$surah': typeof ListenSurahRoute
+  '/quran/$surah': typeof QuranSurahRoute
+  '/duas': typeof DuasIndexRoute
+  '/hadith': typeof HadithIndexRoute
+  '/listen': typeof ListenIndexRoute
+  '/quran': typeof QuranIndexRoute
+  '/hadith/$collection/$section': typeof HadithCollectionSectionRoute
+  '/hadith/$collection': typeof HadithCollectionIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/assignments': typeof AssignmentsRoute
+  '/auth': typeof AuthRoute
+  '/dhikr': typeof DhikrRoute
+  '/learn': typeof LearnRoute
+  '/names': typeof NamesRoute
+  '/offline': typeof OfflineRoute
+  '/repeat': typeof RepeatRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/settings': typeof SettingsRoute
+  '/sources': typeof SourcesRoute
+  '/zaid': typeof ZaidRoute
+  '/duas/$id': typeof DuasIdRoute
+  '/listen/$surah': typeof ListenSurahRoute
+  '/quran/$surah': typeof QuranSurahRoute
+  '/duas/': typeof DuasIndexRoute
+  '/hadith/': typeof HadithIndexRoute
+  '/listen/': typeof ListenIndexRoute
+  '/quran/': typeof QuranIndexRoute
+  '/hadith/$collection/$section': typeof HadithCollectionSectionRoute
+  '/hadith/$collection/': typeof HadithCollectionIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/assignments'
+    | '/auth'
+    | '/dhikr'
+    | '/learn'
+    | '/names'
+    | '/offline'
+    | '/repeat'
+    | '/reset-password'
+    | '/settings'
+    | '/sources'
+    | '/zaid'
+    | '/duas/$id'
+    | '/listen/$surah'
+    | '/quran/$surah'
+    | '/duas/'
+    | '/hadith/'
+    | '/listen/'
+    | '/quran/'
+    | '/hadith/$collection/$section'
+    | '/hadith/$collection/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/assignments'
+    | '/auth'
+    | '/dhikr'
+    | '/learn'
+    | '/names'
+    | '/offline'
+    | '/repeat'
+    | '/reset-password'
+    | '/settings'
+    | '/sources'
+    | '/zaid'
+    | '/duas/$id'
+    | '/listen/$surah'
+    | '/quran/$surah'
+    | '/duas'
+    | '/hadith'
+    | '/listen'
+    | '/quran'
+    | '/hadith/$collection/$section'
+    | '/hadith/$collection'
+  id:
+    | '__root__'
+    | '/'
+    | '/assignments'
+    | '/auth'
+    | '/dhikr'
+    | '/learn'
+    | '/names'
+    | '/offline'
+    | '/repeat'
+    | '/reset-password'
+    | '/settings'
+    | '/sources'
+    | '/zaid'
+    | '/duas/$id'
+    | '/listen/$surah'
+    | '/quran/$surah'
+    | '/duas/'
+    | '/hadith/'
+    | '/listen/'
+    | '/quran/'
+    | '/hadith/$collection/$section'
+    | '/hadith/$collection/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AssignmentsRoute: typeof AssignmentsRoute
+  AuthRoute: typeof AuthRoute
+  DhikrRoute: typeof DhikrRoute
+  LearnRoute: typeof LearnRoute
+  NamesRoute: typeof NamesRoute
+  OfflineRoute: typeof OfflineRoute
+  RepeatRoute: typeof RepeatRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  SettingsRoute: typeof SettingsRoute
+  SourcesRoute: typeof SourcesRoute
+  ZaidRoute: typeof ZaidRoute
+  DuasIdRoute: typeof DuasIdRoute
+  ListenSurahRoute: typeof ListenSurahRoute
+  QuranSurahRoute: typeof QuranSurahRoute
+  DuasIndexRoute: typeof DuasIndexRoute
+  HadithIndexRoute: typeof HadithIndexRoute
+  ListenIndexRoute: typeof ListenIndexRoute
+  QuranIndexRoute: typeof QuranIndexRoute
+  HadithCollectionSectionRoute: typeof HadithCollectionSectionRoute
+  HadithCollectionIndexRoute: typeof HadithCollectionIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +312,171 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/assignments': {
+      id: '/assignments'
+      path: '/assignments'
+      fullPath: '/assignments'
+      preLoaderRoute: typeof AssignmentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dhikr': {
+      id: '/dhikr'
+      path: '/dhikr'
+      fullPath: '/dhikr'
+      preLoaderRoute: typeof DhikrRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learn': {
+      id: '/learn'
+      path: '/learn'
+      fullPath: '/learn'
+      preLoaderRoute: typeof LearnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/names': {
+      id: '/names'
+      path: '/names'
+      fullPath: '/names'
+      preLoaderRoute: typeof NamesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/offline': {
+      id: '/offline'
+      path: '/offline'
+      fullPath: '/offline'
+      preLoaderRoute: typeof OfflineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/repeat': {
+      id: '/repeat'
+      path: '/repeat'
+      fullPath: '/repeat'
+      preLoaderRoute: typeof RepeatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sources': {
+      id: '/sources'
+      path: '/sources'
+      fullPath: '/sources'
+      preLoaderRoute: typeof SourcesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/zaid': {
+      id: '/zaid'
+      path: '/zaid'
+      fullPath: '/zaid'
+      preLoaderRoute: typeof ZaidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/duas/': {
+      id: '/duas/'
+      path: '/duas'
+      fullPath: '/duas/'
+      preLoaderRoute: typeof DuasIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/duas/$id': {
+      id: '/duas/$id'
+      path: '/duas/$id'
+      fullPath: '/duas/$id'
+      preLoaderRoute: typeof DuasIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hadith/': {
+      id: '/hadith/'
+      path: '/hadith'
+      fullPath: '/hadith/'
+      preLoaderRoute: typeof HadithIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/listen/': {
+      id: '/listen/'
+      path: '/listen'
+      fullPath: '/listen/'
+      preLoaderRoute: typeof ListenIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/listen/$surah': {
+      id: '/listen/$surah'
+      path: '/listen/$surah'
+      fullPath: '/listen/$surah'
+      preLoaderRoute: typeof ListenSurahRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quran/': {
+      id: '/quran/'
+      path: '/quran'
+      fullPath: '/quran/'
+      preLoaderRoute: typeof QuranIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quran/$surah': {
+      id: '/quran/$surah'
+      path: '/quran/$surah'
+      fullPath: '/quran/$surah'
+      preLoaderRoute: typeof QuranSurahRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hadith/$collection/': {
+      id: '/hadith/$collection/'
+      path: '/hadith/$collection'
+      fullPath: '/hadith/$collection/'
+      preLoaderRoute: typeof HadithCollectionIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hadith/$collection/$section': {
+      id: '/hadith/$collection/$section'
+      path: '/hadith/$collection/$section'
+      fullPath: '/hadith/$collection/$section'
+      preLoaderRoute: typeof HadithCollectionSectionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AssignmentsRoute: AssignmentsRoute,
+  AuthRoute: AuthRoute,
+  DhikrRoute: DhikrRoute,
+  LearnRoute: LearnRoute,
+  NamesRoute: NamesRoute,
+  OfflineRoute: OfflineRoute,
+  RepeatRoute: RepeatRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  SettingsRoute: SettingsRoute,
+  SourcesRoute: SourcesRoute,
+  ZaidRoute: ZaidRoute,
+  DuasIdRoute: DuasIdRoute,
+  ListenSurahRoute: ListenSurahRoute,
+  QuranSurahRoute: QuranSurahRoute,
+  DuasIndexRoute: DuasIndexRoute,
+  HadithIndexRoute: HadithIndexRoute,
+  ListenIndexRoute: ListenIndexRoute,
+  QuranIndexRoute: QuranIndexRoute,
+  HadithCollectionSectionRoute: HadithCollectionSectionRoute,
+  HadithCollectionIndexRoute: HadithCollectionIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
