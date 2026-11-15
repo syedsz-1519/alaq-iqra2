@@ -74,3 +74,9 @@
 - [ ] Zara shown as "coming soon" (female voice not ready)
 - [ ] Zaid usable offline (lessons and drills without internet; live AI conversation needs internet)
 - [ ] Run at https://alaq-iqra.vercel.app (outside Lovable hosting — explain options)
+
+## Request 2026-11-15 (9)
+- [ ] Reading section: Bismillah placed directly below the surah name (as the opening pledge), checked across surahs
+- [ ] Smoother app flow and properly responsive mobile view
+- [ ] Zaid's Tajweed lessons play offline using the phone's built-in voice
+- [ ] Draggable Zaid voice bubble that can be moved anywhere on screen
