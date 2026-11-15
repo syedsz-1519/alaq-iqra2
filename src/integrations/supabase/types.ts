@@ -14,23 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      hadith_translations: {
+        Row: {
+          collection: string
+          created_at: string
+          hadith_number: number
+          lang: string
+          model: string
+          text: string
+        }
+        Insert: {
+          collection: string
+          created_at?: string
+          hadith_number: number
+          lang: string
+          model?: string
+          text: string
+        }
+        Update: {
+          collection?: string
+          created_at?: string
+          hadith_number?: number
+          lang?: string
+          model?: string
+          text?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
           display_name: string
           id: string
+          teacher: string
           updated_at: string
         }
         Insert: {
           created_at?: string
           display_name?: string
           id: string
+          teacher?: string
           updated_at?: string
         }
         Update: {
           created_at?: string
           display_name?: string
           id?: string
+          teacher?: string
           updated_at?: string
         }
         Relationships: []

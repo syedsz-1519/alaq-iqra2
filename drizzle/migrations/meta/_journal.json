@@ -8,6 +8,20 @@
       "when": 1794718887667,
       "tag": "0000_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794718906620,
+      "tag": "0001_hadith_translations",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794718919854,
+      "tag": "0002_profiles_teacher_choice",
+      "breakpoints": true
     }
   ]
 }
