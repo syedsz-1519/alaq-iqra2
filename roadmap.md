@@ -83,4 +83,4 @@
 
 ## Request 2026-11-15 (10)
 - [x] Bookmarks and saved reading progress (return to specific ayahs, pick up where you left off)
-- [ ] Bismillah shown directly below the surah name, above the first ayah, on every surah (incl. Al-Fatihah) like the reference
+- [x] Bismillah shown directly below the surah name, above the first ayah, on every surah (incl. Al-Fatihah) like the reference
