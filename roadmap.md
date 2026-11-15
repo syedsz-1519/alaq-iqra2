@@ -80,3 +80,7 @@
 - [x] Smoother app flow and properly responsive mobile view
 - [x] Zaid's Tajweed lessons play offline using the phone's built-in voice
 - [x] Draggable Zaid voice bubble that can be moved anywhere on screen
+
+## Request 2026-11-15 (10)
+- [x] Bookmarks and saved reading progress (return to specific ayahs, pick up where you left off)
+- [ ] Bismillah shown directly below the surah name, above the first ayah, on every surah (incl. Al-Fatihah) like the reference
