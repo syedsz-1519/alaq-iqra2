@@ -1,12 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowRight, BookOpenCheck, Loader2, Mic, PhoneOff, Repeat2, MessagesSquare } from "lucide-react";
+import { ArrowRight, BookOpenCheck, Headphones, Loader2, Mic, PhoneOff, Repeat2, MessagesSquare, WifiOff } from "lucide-react";
 import { shareImage } from "@/lib/share";
 import { useAuth } from "@/lib/auth";
 import { TEACHER_LANGUAGES } from "@/lib/teachers";
 import { TRACKS, lessonsFor, type Lesson, type TrackId } from "@/lib/zaid-lessons";
 import { useZaid } from "@/components/alaq/zaid-provider";
 import { TeacherBadge, TeacherPicker } from "@/components/alaq/teacher-ui";
+import { OfflineLesson } from "@/components/alaq/offline-lesson";
+import { TAJWEED_TOPICS } from "@/lib/tajweed-notes";
+import { useOnline } from "@/hooks/use-online";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -29,7 +32,10 @@ function LearnPage() {
   const z = useZaid();
   const navigate = useNavigate();
   const [track, setTrack] = useState<TrackId>("tajweed");
+  const [reading, setReading] = useState<string | null>(null);
+  const online = useOnline();
   const t = z.teacher;
+  const topicFor = (l: Lesson) => (l.track === "tajweed" ? TAJWEED_TOPICS.find((x) => `tajweed-${x.id}` === l.id) : undefined);
 
   const start = (lesson?: Lesson) => {
     if (!user) return void navigate({ to: "/auth", search: { redirect: "/learn" } });
@@ -108,12 +114,25 @@ function LearnPage() {
           ))}
         </div>
         <p className="mt-3 max-w-2xl text-sm text-muted-foreground">{active.blurb}</p>
+        {track === "tajweed" && (
+          <p className="mt-3 inline-flex items-start gap-2 rounded-2xl bg-accent px-3 py-2 text-xs text-accent-foreground">
+            <Headphones className="mt-0.5 size-3.5 shrink-0" />
+            Tap <b className="font-semibold">Listen</b> on any Tajweed lesson to hear {t.name} read it with your phone's own voice — no internet or sign-in needed.
+          </p>
+        )}
+        {!online && (
+          <p className="mt-3 flex items-center gap-2 rounded-2xl bg-gold/20 px-3 py-2 text-xs font-medium">
+            <WifiOff className="size-3.5 shrink-0" /> You're offline. Live lessons need internet; Tajweed lessons still play with your phone's voice.
+          </p>
+        )}
 
         <ol className="mt-5 grid gap-3 md:grid-cols-2">
           {lessonsFor(track).map((l, i) => {
             const current = z.lesson?.id === l.id && !z.idle;
+            const topic = topicFor(l);
             return (
-              <li key={l.id} className={cn("flex gap-4 rounded-2xl border bg-card p-4", current ? "border-gold bg-gold/10" : "border-border")}>
+              <li key={l.id} className={cn("rounded-2xl border bg-card p-4", current ? "border-gold bg-gold/10" : "border-border", reading === l.id && "md:col-span-2")}>
+              <div className="flex gap-3 sm:gap-4">
                 <span className="grid size-9 shrink-0 place-items-center rounded-full bg-secondary text-sm font-semibold text-secondary-foreground">{i + 1}</span>
                 <div className="min-w-0 flex-1">
                   <p className="font-display font-semibold">{l.title}</p>
@@ -134,15 +153,31 @@ function LearnPage() {
                     </p>
                   )}
                 </div>
-                <Button
-                  size="sm"
-                  variant={current ? "secondary" : "default"}
-                  className="shrink-0 self-center rounded-full"
-                  disabled={!ready || (!z.idle && !current)}
-                  onClick={() => (current ? z.setPanelOpen(true) : start(l))}
-                >
-                  {current ? "In lesson" : "Start"} <ArrowRight />
-                </Button>
+                <div className="flex shrink-0 flex-col items-stretch gap-1.5 self-center">
+                  <Button
+                    size="sm"
+                    variant={current ? "secondary" : "default"}
+                    className="rounded-full"
+                    disabled={!ready || !online || (!z.idle && !current)}
+                    title={online ? undefined : "Live lessons need internet"}
+                    onClick={() => (current ? z.setPanelOpen(true) : start(l))}
+                  >
+                    {current ? "In lesson" : "Start"} <ArrowRight />
+                  </Button>
+                  {topic && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="rounded-full"
+                      aria-expanded={reading === l.id}
+                      onClick={() => setReading((r) => (r === l.id ? null : l.id))}
+                    >
+                      <Headphones /> Listen
+                    </Button>
+                  )}
+                </div>
+              </div>
+              {topic && reading === l.id && <OfflineLesson topic={topic} teacher={t} onClose={() => setReading(null)} />}
               </li>
             );
           })}

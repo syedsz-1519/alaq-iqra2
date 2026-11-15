@@ -59,8 +59,7 @@ export function OfflineLesson({ topic, teacher, onClose }: { topic: TajweedTopic
       </div>
 
       <ol className="mt-4 space-y-1.5 text-sm leading-relaxed" aria-live="polite">
-        {parts.map((p, i) =>
-          p.kind === "intro" && i === 1 ? null : (
+        {parts.map((p, i) => (
             <li
               key={i}
               dir={p.lang === "ar" ? "rtl" : "ltr"}
@@ -76,8 +75,7 @@ export function OfflineLesson({ topic, teacher, onClose }: { topic: TajweedTopic
                 {p.text}
               </button>
             </li>
-          ),
-        )}
+        ))}
       </ol>
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground">
