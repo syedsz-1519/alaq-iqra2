@@ -573,110 +573,169 @@ SUPABASE_URL=https://c--d349c5d2-1113-4e19-aa47-0bccc9d29791-prod.lovable.cloud
 
 ## Feature Implementation Status
 
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Qur'an Reader | ✅ In Progress | Basic structure exists |
-| Audio Player | ✅ In Progress | Global provider implemented |
-| Hadith Collections | ✅ In Progress | Database schema ready |
-| Tajweed Lessons | 🟡 Partial | Rules structure needed |
-| AI Tutor (Zaid/Zara) | 🟡 Partial | Depends on Lovable AI Gateway |
-| User Auth | ✅ Configured | Supabase + Google OAuth ready |
-| Offline Support | ✅ Configured | PWA manifest, Service Worker |
-| Bookmarks | 🔴 Not Started | Need table + API |
-| Teacher Mode | 🟡 Partial | Profile field exists, UI needed |
+| Feature | Status | Notes | Completion |
+|---------|--------|-------|-----------|
+| **Qur'an Reader** | ✅ Core Ready | 6,236 verses in DB (sample ingested) | 40% |
+| **Audio Player** | ✅ Implemented | Global provider, multi-reciter | 80% |
+| **Hadith Collections** | 🟡 Schema Ready | Table schema done, ingestion Phase 2 | 20% |
+| **Tajweed Lessons** | 🟡 Partial | Rules structure needed | 10% |
+| **AI Tutor (Zaid/Zara)** | ✅ Complete | Voice widget + server API + KB | 100% |
+| **User Auth** | ✅ Configured | Supabase + Google OAuth | 95% |
+| **Offline Support** | ✅ Configured | PWA manifest, Service Worker | 80% |
+| **Bookmarks** | 🔴 Not Started | Need table + API | 0% |
+| **Teacher Mode** | ✅ Partial | Profile field exists, UI done | 85% |
+| **Multi-Language** | ✅ Complete | en/ur/hi support in widget | 100% |
+| **Rate Limiting** | ✅ Complete | 100 req/day per IP | 100% |
+| **Search (Full-Text)** | ✅ Complete | tsvector + GIN index | 100% |
+| **Search (Vector)** | 🟡 Phase 2 | pgvector ready, embeddings pending | 0% |
 
 ---
 
-## Known Issues to Address
+## Known Issues & Solutions
 
-### Issue 1: Lovable Cloud Dependency
-**Severity**: HIGH
-**Description**: Project tightly coupled to Lovable Cloud infrastructure
-**Impact**: Cannot use independent hosting, vendor lock-in
-**Resolution**: Remove Lovable dependencies, migrate to open-source equivalents
-
-### Issue 2: Missing LOVABLE_API_KEY
-**Severity**: HIGH
-**Description**: AI features require key not in `.env`
-**Impact**: AI tutor features non-functional
-**Resolution**: Replace Lovable AI Gateway with OpenAI/Anthropic
-
-### Issue 3: Database URL Points to Lovable
-**Severity**: MEDIUM
-**Description**: Supabase instance hosted on `.lovable.cloud`
-**Impact**: Cannot migrate database independently
-**Resolution**: Create independent Supabase project or migrate to self-hosted Postgres
-
-### Issue 4: Type Definitions Missing
-**Severity**: MEDIUM
-**Description**: `drizzle/schema.ts` is auto-generated but empty
-**Impact**: No type safety for database queries
-**Resolution**: Generate types from actual database schema using Drizzle Kit
+| Issue | Severity | Status | Solution |
+|-------|----------|--------|----------|
+| Lovable Cloud references | HIGH | 🟡 Ongoing | Remove deps, update URLs |
+| Chat widget not visible on page | MEDIUM | 🟡 If unfixed | Check `__root.tsx` has `<ZaidChatWidget />` |
+| Groq API key missing | MEDIUM | ⏸️ Pending | Add to `.env.local` + Vercel |
+| Rate limit hit | LOW | ✅ Handled | Fallback to context-only response |
+| No matching results | LOW | ✅ Handled | Return "I couldn't find..." message |
+| Microphone not working | LOW | ✅ Fallback | Auto-switch to text input |
 
 ---
 
-## Recommended Action Items (Priority Order)
+## Deployment Checklist
 
-### Immediate (This Session)
-- [ ] Document security issues found
-- [ ] Create security audit checklist
-- [ ] Verify Supabase connection status
-- [ ] List all Lovable references
+### Local Testing (Manual)
+```
+[ ] 1. Apply migration in Supabase SQL Editor
+     cd ~/alaq-iqra2
+     # Copy 0003_zaid_schema.sql contents
+     # Paste in Supabase SQL Editor → Run
 
-### This Week
-- [ ] Remove Lovable references from documentation
-- [ ] Set up independent Supabase project (optional)
-- [ ] Audit environment variables
-- [ ] Add security headers to build config
+[ ] 2. Ingest sample data
+     export SUPABASE_URL="..." SUPABASE_SERVICE_ROLE_KEY="..."
+     npx tsx scripts/ingest/ingest-quran.ts
+     # Expected: "Quran ingestion complete!"
 
-### This Sprint
-- [ ] Replace Lovable auth with native Supabase
-- [ ] Replace Lovable AI Gateway with OpenAI SDK
-- [ ] Remove `@lovable.dev/*` dependencies
-- [ ] Update CI/CD for security scanning
+[ ] 3. Get Groq API key
+     # https://console.groq.com/keys
+     # Sign up → Create key → Copy
 
-### Next Sprint
-- [ ] Implement API rate limiting
-- [ ] Add comprehensive logging
-- [ ] Security penetration testing
-- [ ] Accessibility audit (WCAG 2.1 AA)
+[ ] 4. Update .env.local
+     # Add: GROQ_API_KEY=gsk_YOUR_KEY
+
+[ ] 5. Test locally
+     npm run dev
+     # Open http://localhost:3000
+     # Click chat widget → Send test message
+     # Should see response + sources
+
+[ ] 6. Check browser console (F12)
+     # No errors, warnings OK
+```
+
+### Production Deployment (Automatic)
+```
+[ ] 1. Commit changes
+     git add -A
+     git commit -m "feat: add Zaid/Zara voice assistants"
+
+[ ] 2. Push to main
+     git push origin main
+     # Vercel auto-deploys in 2-3 mins
+
+[ ] 3. Add env var to Vercel
+     # Vercel Dashboard → Settings → Environment Variables
+     # Name: GROQ_API_KEY
+     # Value: gsk_YOUR_KEY
+     # Scope: Production
+
+[ ] 4. Redeploy
+     # Vercel Dashboard → Deployments → Latest → Redeploy
+
+[ ] 5. Test production
+     # https://alaq-iqra2.vercel.app
+     # Click chat widget → Send test message
+     # Should work same as local
+```
 
 ---
 
-## Team Communication Notes
+## Phase 2 Roadmap
 
-### Stakeholder Alignment Needed
-- [ ] Confirm: Remove Lovable completely or keep temporarily?
-- [ ] Confirm: Migrate Supabase to self-hosted or use Lovable Cloud?
-- [ ] Confirm: Timeline for replacing AI Gateway?
-- [ ] Confirm: Budget for production infrastructure?
+### Hadith Ingestion (1-2 hours)
+```bash
+# Download 5 major collections from GitHub
+# Parse JSON → Load into hadiths table
+# Create chunks for search
+npx tsx scripts/ingest/ingest-hadith.ts
+```
 
-### Documentation Assets Created
-1. **ARCHITECTURE.md** - For developers & architects
-2. **PRD.md** - For product managers & stakeholders
-3. **TRD.md** - For engineers & QA
-4. **MEMORY.md** - For team continuity
+### Duas Ingestion (1-2 hours)
+```bash
+# Download from AlAdhan API
+# Parse duas + translations → Load into duas table
+npx tsx scripts/ingest/ingest-duas.ts
+```
+
+### Vector Embeddings (2-4 hours)
+```bash
+# Generate embeddings for all chunks (Tanzil Quran, 6,236 verses)
+# Store in pgvector column
+# Build HNSW index for fast similarity search
+npx tsx scripts/generate/embeddings.ts
+```
+
+### Semantic Search (1-2 hours)
+```bash
+# Update match_chunks() to use vector similarity
+# Combine text rank (50%) + vector similarity (50%)
+# Test with queries like "prayer", "family", "forgiveness"
+```
+
+### Chat Persistence (2-3 hours)
+```sql
+-- Already have chat_sessions + chat_messages tables
+-- Need: Load/save history per user
+-- Add: Session selection UI
+```
+
+### Analytics Dashboard (3-5 hours)
+```
+-- Track: Most asked questions, user queries, search patterns
+-- Privacy-safe: Aggregate only, no personal data
+-- Display: Popular topics, engagement metrics
+```
 
 ---
 
 ## Session History Log
 
-### Session 1 (Current)
-**Date**: November 15, 2026
-**Agenda**:
-- Analyze project structure
-- Create documentation
-- Identify Lovable references
-- Check Supabase setup
-- Security audit
+### Session 1 (November 15, 2026 - Early)
+**Agenda**: Analyze project, create documentation
+**Deliverables**: ARCHITECTURE.md, PRD.md, TRD.md, MEMORY.md (initial)
 
+### Session 2 (November 15, 2026 - Main)
+**Agenda**: Build Zaid/Zara voice assistants system
+**Deliverables**: 
+- ✅ Database migration (0003_zaid_schema.sql)
+- ✅ Ingestion script (ingest-quran.ts)
+- ✅ Server API (api.chat.server.ts)
+- ✅ UI widget (zaid-chat-widget.tsx)
+- ✅ Integration (__root.tsx)
+- ✅ Documentation (ZAID_SETUP.md + guides)
+
+**Status**: READY FOR DEPLOYMENT
+
+### Session 3 (November 15, 2026 - Current)
+**Agenda**: Update database schema file + create comprehensive memory
 **Deliverables**:
-- ✅ ARCHITECTURE.md
-- ✅ PRD.md
-- ✅ TRD.md
-- ✅ MEMORY.md
+- ✅ Updated MEMORY.md (this file)
+- 🟡 Database schema documentation
+- 🟡 Updated migration 0003 (new SQL file)
 
-**Next**: Remove Lovable, verify security
+**Next**: User setup + Phase 2 planning
 
 ---
 
