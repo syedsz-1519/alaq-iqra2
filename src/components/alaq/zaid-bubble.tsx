@@ -190,6 +190,10 @@ export function ZaidBubble() {
         onPointerUp={onPointerUp}
         onPointerCancel={() => setDrag(null)}
         onKeyDown={onKey}
+        onClick={(e) => {
+          // Screen readers and switch access send a click without pointer events.
+          if (e.detail === 0) onBubble();
+        }}
         aria-label={`${inCall ? (open ? `Hide the call with ${name}` : `Show the call with ${name}`) : `Open ${name}, your voice teacher`}. Drag, or use arrow keys, to move.`}
         aria-expanded={inCall ? open : undefined}
         title={`${name} · drag to move`}
@@ -199,7 +203,7 @@ export function ZaidBubble() {
         )}
         style={{ width: BUBBLE_SIZE, height: BUBBLE_SIZE }}
       >
-        {(z.live || !inCall) && <span className={cn("absolute -inset-1 rounded-full border-2 border-gold/60", z.live ? "animate-pulse-ring" : "opacity-0")} />}
+        {z.live && <span className="animate-pulse-ring absolute -inset-1 rounded-full border-2 border-gold/60" />}
         <TeacherBadge teacher={z.teacher} className="size-full border-0 shadow-none" />
         <span className="bg-gold-gradient absolute -bottom-0.5 -right-0.5 grid size-5 place-items-center rounded-full text-gold-foreground ring-2 ring-background">
           <Mic className="size-3" />
