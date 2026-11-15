@@ -30,7 +30,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { pageBudget, paginate } from "@/lib/mushaf";
+import { paginate } from "@/lib/mushaf";
 
 export const Route = createFileRoute("/quran/$surah")({
   validateSearch: (s: Record<string, unknown>): { ayah?: number } => {
@@ -128,11 +128,8 @@ function SurahReader() {
       })),
     [verses, lang, extraData],
   );
-  // Arabic-only reading is laid out as illuminated mushaf pages; with translation it is one flowing list.
-  const pages = useMemo(
-    () => (view === "arabic" ? paginate(rows, pageBudget(view, settings.arabicSize), view) : [rows]),
-    [rows, view, settings.arabicSize],
-  );
+  // Arabic-only reading is laid out as illuminated mushaf pages of 10 ayahs; with translation it is one flowing list.
+  const pages = useMemo(() => (view === "arabic" ? paginate(rows) : [rows]), [rows, view]);
   const paged = view === "arabic";
 
   // Jump to the requested ayah.
@@ -485,8 +482,13 @@ function SurahReader() {
           >
             <div className={cn("flex flex-col", paged ? "px-1.5 py-3 sm:px-3 sm:py-4 md:px-8 md:py-6" : "px-4 py-5 sm:px-5 sm:py-6 md:px-10 md:py-9")}>
               {paged && (
-                <div className="flex items-center justify-between border-b border-gold/40 pb-1.5 text-[11px] text-paper-muted">
+                <div className="flex items-center justify-between gap-2 border-b border-gold/40 pb-1.5 text-[11px] text-paper-muted">
                   <span className="font-display">{meta.englishName}</span>
+                  {pages.length > 1 && (
+                    <span className="tabular-nums">
+                      Ayah {page[0]?.numberInSurah}–{page.at(-1)?.numberInSurah}
+                    </span>
+                  )}
                   <span className="quran-text text-base text-paper-ink">{meta.name}</span>
                 </div>
               )}

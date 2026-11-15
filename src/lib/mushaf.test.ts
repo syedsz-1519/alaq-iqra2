@@ -1,33 +1,31 @@
 import { describe, expect, it } from "vitest";
-import { pageBudget, paginate } from "./mushaf";
+import { AYAHS_PER_PAGE, paginate } from "./mushaf";
 
-const v = (n: number, len: number, tlen = 0) => ({ numberInSurah: n, arabic: "ا".repeat(len), translation: "e".repeat(tlen) });
+const v = (n: number, len = 40) => ({ numberInSurah: n, arabic: "ا".repeat(len) });
+const range = (count: number) => Array.from({ length: count }, (_, i) => v(i + 1, 20 + (i % 9) * 60));
 
 describe("mushaf pages", () => {
+  it("puts 10 ayahs on every page", () => {
+    expect(AYAHS_PER_PAGE).toBe(10);
+    const pages = paginate(range(286));
+    expect(pages).toHaveLength(29);
+    expect(pages.slice(0, -1).every((p) => p.length === 10)).toBe(true);
+    expect(pages[1]?.map((x) => x.numberInSurah)).toEqual([11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
+  });
+
+  it("puts the leftover ayahs on the last page", () => {
+    const pages = paginate(range(286));
+    expect(pages.at(-1)?.map((x) => x.numberInSurah)).toEqual([281, 282, 283, 284, 285, 286]);
+  });
+
   it("keeps every ayah exactly once and in order", () => {
-    const verses = Array.from({ length: 50 }, (_, i) => v(i + 1, 40 + (i % 7) * 30));
-    const pages = paginate(verses, 300, "arabic");
-    expect(pages.flat().map((x) => x.numberInSurah)).toEqual(verses.map((x) => x.numberInSurah));
+    const verses = range(77);
+    expect(paginate(verses).flat().map((x) => x.numberInSurah)).toEqual(verses.map((x) => x.numberInSurah));
   });
 
-  it("starts a new page when the next ayah would overflow", () => {
-    const pages = paginate([v(1, 200), v(2, 200), v(3, 50)], 300, "arabic");
-    expect(pages.map((p) => p.map((x) => x.numberInSurah))).toEqual([[1], [2, 3]]);
-  });
-
-  it("gives an ayah longer than a page its own page", () => {
-    const pages = paginate([v(1, 50), v(2, 900), v(3, 50)], 300, "arabic");
-    expect(pages.map((p) => p.map((x) => x.numberInSurah))).toEqual([[1], [2], [3]]);
-  });
-
-  it("fits fewer ayahs per page with translation shown", () => {
-    const verses = Array.from({ length: 20 }, (_, i) => v(i + 1, 100, 300));
-    const arabicPages = paginate(verses, pageBudget("arabic", 32), "arabic").length;
-    const translatedPages = paginate(verses, pageBudget("arabic", 32), "translated").length;
-    expect(translatedPages).toBeGreaterThan(arabicPages);
-  });
-
-  it("fits fewer characters per page when the Arabic text is larger", () => {
-    expect(pageBudget("arabic", 48)).toBeLessThan(pageBudget("arabic", 32));
+  it("keeps a short surah on one page", () => {
+    expect(paginate(range(7))).toHaveLength(1);
+    expect(paginate(range(10))).toHaveLength(1);
+    expect(paginate(range(11))).toHaveLength(2);
   });
 });
