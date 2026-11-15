@@ -6,7 +6,7 @@ const EDGE = 12;
 const TOP = 76; // below the app header
 
 /** Keeps clear of the bottom tab bar and mini player on phones. */
-export const bottomReserve = (vw: number) => (vw < 1024 ? 150 : 24);
+export const bottomReserve = (vw: number) => (vw < 1024 ? 150 : 48);
 
 export const DEFAULT_SPOT: BubbleSpot = { side: "right", y: 1 };
 
