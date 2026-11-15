@@ -197,19 +197,24 @@ export const getUserProfile = createServerFn({
 })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", context.userId)
-      .single();
+    try {
+      const { data, error } = await context.supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", context.userId)
+        .single();
 
-    if (error && error.code !== "PGRST116") {
-      // PGRST116 = no rows returned (not an error)
-      console.error("[Auth] Profile fetch error:", error);
-      throw new Error(error.message || "Failed to fetch profile");
+      if (error && error.code !== "PGRST116") {
+        // PGRST116 = no rows returned (not an error)
+        console.error("[Auth] Profile fetch error:", error);
+        throw new Error(error.message || "Failed to fetch profile");
+      }
+
+      return data || null;
+    } catch (err) {
+      if (err instanceof Error) throw err;
+      throw new Error("Failed to fetch profile.");
     }
-
-    return data || null;
   });
 
 /**
@@ -234,19 +239,24 @@ export const updateUserProfile = createServerFn({
       updates.teacher = teacher;
     }
 
-    const { data, error } = await context.supabase
-      .from("profiles")
-      .update(updates)
-      .eq("id", context.userId)
-      .select()
-      .single();
+    try {
+      const { data, error } = await context.supabase
+        .from("profiles")
+        .update(updates)
+        .eq("id", context.userId)
+        .select()
+        .single();
 
-    if (error) {
-      console.error("[Auth] Profile update error:", error);
-      throw new Error(error.message || "Failed to update profile");
+      if (error) {
+        console.error("[Auth] Profile update error:", error);
+        throw new Error(error.message || "Failed to update profile");
+      }
+
+      return data;
+    } catch (err) {
+      if (err instanceof Error) throw err;
+      throw new Error("Failed to update profile.");
     }
-
-    return data;
   });
 
 /**
@@ -261,19 +271,24 @@ export const sendPasswordResetEmail = createServerFn({
       throw new Error("Email required");
     }
 
-    const { error } = await supabase.auth.resetPasswordForEmail(
-      email.toLowerCase().trim(),
-      {
-        redirectTo: `${typeof window !== "undefined" ? window.location.origin : "https://alaq.app"}/reset-password`,
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        email.toLowerCase().trim(),
+        {
+          redirectTo: `${typeof window !== "undefined" ? window.location.origin : "https://alaq.app"}/reset-password`,
+        }
+      );
+
+      if (error) {
+        console.error("[Auth] Password reset email error:", error);
+        throw new Error(error.message || "Failed to send reset email");
       }
-    );
 
-    if (error) {
-      console.error("[Auth] Password reset email error:", error);
-      throw new Error(error.message || "Failed to send reset email");
+      return { success: true };
+    } catch (err) {
+      if (err instanceof Error) throw err;
+      throw new Error("Failed to send reset email.");
     }
-
-    return { success: true };
   });
 
 /**
@@ -291,16 +306,21 @@ export const updatePassword = createServerFn({
       throw new Error("Password must be at least 6 characters");
     }
 
-    const { error } = await context.supabase.auth.updateUser({
-      password,
-    });
+    try {
+      const { error } = await context.supabase.auth.updateUser({
+        password,
+      });
 
-    if (error) {
-      console.error("[Auth] Password update error:", error);
-      throw new Error(error.message || "Failed to update password");
+      if (error) {
+        console.error("[Auth] Password update error:", error);
+        throw new Error(error.message || "Failed to update password");
+      }
+
+      return { success: true };
+    } catch (err) {
+      if (err instanceof Error) throw err;
+      throw new Error("Failed to update password.");
     }
-
-    return { success: true };
   });
 
 /**
@@ -309,14 +329,19 @@ export const updatePassword = createServerFn({
 export const signOut = createServerFn({
   method: "POST",
 }).handler(async () => {
-  const { error } = await supabase.auth.signOut();
+  try {
+    const { error } = await supabase.auth.signOut();
 
-  if (error) {
-    console.error("[Auth] Sign out error:", error);
-    throw new Error(error.message || "Failed to sign out");
+    if (error) {
+      console.error("[Auth] Sign out error:", error);
+      throw new Error(error.message || "Failed to sign out");
+    }
+
+    return { success: true };
+  } catch (err) {
+    if (err instanceof Error) throw err;
+    throw new Error("Failed to sign out.");
   }
-
-  return { success: true };
 });
 
 /**
@@ -327,24 +352,49 @@ export const verifyOtp = createServerFn({
 })
   .inputType<{ email: string; token: string; type: "email" | "recovery" | "magic_link" }>()
   .handler(async ({ email, token, type }) => {
-    const { data, error } = await supabase.auth.verifyOtp({
-      email: email.toLowerCase().trim(),
-      token,
-      type,
-    });
-
-    if (error) {
-      console.error("[Auth] OTP verification error:", error);
-      throw new Error(error.message || "Invalid or expired verification code");
+    if (!email || !token) {
+      throw new Error("Email and verification code are required.");
     }
 
-    // Create profile if signing up via email link
-    if (data.user && type === "email") {
-      await createUserProfile(data.user.id, data.user.user_metadata?.display_name, data.user.user_metadata?.teacher);
+    if (token.length !== 6) {
+      throw new Error("Verification code must be 6 characters.");
     }
 
-    return {
-      session: data.session,
-      user: data.user,
-    };
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: email.toLowerCase().trim(),
+        token,
+        type,
+      });
+
+      if (error) {
+        console.error("[Auth] OTP verification error:", error);
+        
+        if (error.message.includes("expired")) {
+          throw new Error("Verification code has expired. Request a new one.");
+        }
+        
+        throw new Error(error.message || "Invalid or expired verification code");
+      }
+
+      // Create profile if signing up via email link
+      if (data.user && type === "email") {
+        try {
+          await createUserProfile(
+            { userId: data.user.id, displayName: data.user.user_metadata?.display_name, teacher: data.user.user_metadata?.teacher }
+          );
+        } catch (profileErr) {
+          console.error("[Auth] Profile creation after OTP (non-blocking):", profileErr);
+          // Don't fail verification if profile creation fails
+        }
+      }
+
+      return {
+        session: data.session,
+        user: data.user,
+      };
+    } catch (err) {
+      if (err instanceof Error) throw err;
+      throw new Error("Failed to verify code.");
+    }
   });
