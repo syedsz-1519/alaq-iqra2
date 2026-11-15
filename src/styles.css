@@ -1,9 +1,6 @@
 /*
  * Tailwind v4 entry: config lives here, with no tailwind.config.js or PostCSS plugin.
- * - Keep every @import in this top block, above @theme and the rest of the file. Install an
- *   npm package before @importing its CSS. Never @import a remote URL (web fonts, CDN CSS): the
- *   build resolves @import from the filesystem. Load those with a <link> in the head() of
- *   src/routes/__root.tsx and name the family in a --font-* token in @theme inline below.
+ * Keep every @import in this top block. Web fonts load via <link> in src/routes/__root.tsx.
  */
 @import "tailwindcss" source(none);
 @source "../src";
@@ -11,25 +8,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/*
- * Design system definition.
- *
- * The design lives in this file: oklch color tokens on the shadcn variables
- * (--background, --foreground, --primary, --secondary, --muted, --accent, ...) plus
- * new tokens as needed, font tokens, and custom styles and animations.
- *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes (e.g. --color-primary -> bg-primary, text-primary).
- *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
- *
- * To add a new semantic color:
- * 1. Add the variable to :root (light value) and .dark (dark value)
- * 2. Register it in @theme inline as --color-<name>: var(--<name>)
- */
-
 @theme inline {
+  --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-arabic: "Amiri Quran", "Amiri", "Scheherazade New", serif;
+  --font-naskh: "Amiri", "Scheherazade New", serif;
+  --font-urdu: "Noto Nastaliq Urdu", "Jameel Noori Nastaleeq", serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -53,6 +37,17 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
+  --color-ink: var(--ink);
+  --color-ink-foreground: var(--ink-foreground);
+  --color-paper: var(--paper);
+  --color-paper-ink: var(--paper-ink);
+  --color-paper-muted: var(--paper-muted);
+  --color-lapis: var(--lapis);
+  --color-lapis-foreground: var(--lapis-foreground);
+  --color-night: var(--night);
+  --color-night-foreground: var(--night-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -72,84 +67,295 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* Alaq: warm parchment, deep teal ink, gilded accents. */
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
+  --radius: 0.875rem;
+  --background: oklch(0.965 0.017 85);
+  --foreground: oklch(0.24 0.035 175);
+  --card: oklch(0.985 0.01 85);
+  --card-foreground: oklch(0.24 0.035 175);
+  --popover: oklch(0.985 0.01 85);
+  --popover-foreground: oklch(0.24 0.035 175);
+  --primary: oklch(0.38 0.07 175);
+  --primary-foreground: oklch(0.97 0.02 85);
+  --secondary: oklch(0.925 0.025 85);
+  --secondary-foreground: oklch(0.3 0.05 175);
+  --muted: oklch(0.93 0.02 85);
+  --muted-foreground: oklch(0.48 0.03 160);
+  --accent: oklch(0.9 0.045 160);
+  --accent-foreground: oklch(0.28 0.06 175);
+  --gold: oklch(0.74 0.13 78);
+  --gold-foreground: oklch(0.25 0.05 70);
+  --ink: oklch(0.3 0.06 175);
+  --ink-foreground: oklch(0.96 0.025 85);
+  --destructive: oklch(0.55 0.2 27);
+  --destructive-foreground: oklch(0.98 0.01 85);
+  --border: oklch(0.88 0.025 85);
+  --input: oklch(0.86 0.025 85);
+  --ring: oklch(0.55 0.08 175);
+  --chart-1: oklch(0.38 0.07 175);
+  --chart-2: oklch(0.74 0.13 78);
+  --chart-3: oklch(0.6 0.09 160);
+  --chart-4: oklch(0.55 0.1 40);
+  --chart-5: oklch(0.45 0.05 220);
+  --sidebar: oklch(0.95 0.02 85);
+  --sidebar-foreground: oklch(0.24 0.035 175);
+  --sidebar-primary: oklch(0.38 0.07 175);
+  --sidebar-primary-foreground: oklch(0.97 0.02 85);
+  --sidebar-accent: oklch(0.9 0.045 160);
+  --sidebar-accent-foreground: oklch(0.28 0.06 175);
+  --sidebar-border: oklch(0.88 0.025 85);
+  --sidebar-ring: oklch(0.55 0.08 175);
+  --pattern-line: oklch(0.38 0.07 175 / 0.07);
+  /* Printed mushaf page: cream paper, dark ink, lapis and gold illumination (same in dark mode). */
+  --paper: oklch(0.97 0.03 90);
+  --paper-ink: oklch(0.22 0.03 200);
+  --paper-muted: oklch(0.45 0.03 200);
+  --lapis: oklch(0.42 0.12 255);
+  --lapis-foreground: oklch(0.88 0.12 88);
+  /* Taken from the Alaq calligraphy logo: emerald glow on a night-blue field, gilded script. */
+  --night: oklch(0.19 0.03 225);
+  --night-foreground: oklch(0.95 0.025 85);
+  --gradient-hero: radial-gradient(120% 90% at 50% 35%, oklch(0.36 0.07 172) 0%, oklch(0.24 0.045 195) 50%, oklch(0.17 0.03 228) 100%);
+  --gradient-gold: linear-gradient(135deg, oklch(0.86 0.11 88), oklch(0.72 0.13 72) 55%, oklch(0.62 0.12 62));
+  --gradient-card: linear-gradient(180deg, oklch(0.99 0.008 85), oklch(0.965 0.017 85));
+  --shadow-elegant: 0 18px 40px -18px oklch(0.24 0.05 190 / 0.35);
+  --shadow-glow: 0 0 0 1px oklch(0.74 0.13 78 / 0.25), 0 12px 36px -12px oklch(0.74 0.13 78 / 0.45);
 }
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
+  --background: oklch(0.17 0.022 180);
+  --foreground: oklch(0.93 0.02 85);
+  --card: oklch(0.21 0.026 180);
+  --card-foreground: oklch(0.93 0.02 85);
+  --popover: oklch(0.21 0.026 180);
+  --popover-foreground: oklch(0.93 0.02 85);
+  --primary: oklch(0.74 0.11 170);
+  --primary-foreground: oklch(0.17 0.03 180);
+  --secondary: oklch(0.26 0.028 180);
+  --secondary-foreground: oklch(0.92 0.02 85);
+  --muted: oklch(0.25 0.025 180);
+  --muted-foreground: oklch(0.7 0.03 150);
+  --accent: oklch(0.3 0.05 170);
+  --accent-foreground: oklch(0.93 0.02 85);
+  --gold: oklch(0.8 0.13 80);
+  --gold-foreground: oklch(0.2 0.04 70);
+  --ink: oklch(0.27 0.05 175);
+  --ink-foreground: oklch(0.95 0.025 85);
+  --destructive: oklch(0.68 0.19 25);
+  --destructive-foreground: oklch(0.98 0.01 85);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
+  --ring: oklch(0.65 0.1 170);
+  --sidebar: oklch(0.21 0.026 180);
+  --sidebar-foreground: oklch(0.93 0.02 85);
+  --sidebar-primary: oklch(0.74 0.11 170);
+  --sidebar-primary-foreground: oklch(0.17 0.03 180);
+  --sidebar-accent: oklch(0.3 0.05 170);
+  --sidebar-accent-foreground: oklch(0.93 0.02 85);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+  --sidebar-ring: oklch(0.65 0.1 170);
+  --pattern-line: oklch(0.8 0.13 80 / 0.06);
+  --paper: oklch(0.94 0.03 88);
+  --paper-ink: oklch(0.2 0.03 200);
+  --paper-muted: oklch(0.42 0.03 200);
+  --lapis: oklch(0.4 0.11 255);
+  --lapis-foreground: oklch(0.88 0.12 88);
+  --night: oklch(0.14 0.025 225);
+  --night-foreground: oklch(0.95 0.025 85);
+  --gradient-hero: radial-gradient(120% 90% at 50% 35%, oklch(0.32 0.065 172) 0%, oklch(0.2 0.04 195) 50%, oklch(0.13 0.025 228) 100%);
+  --gradient-gold: linear-gradient(135deg, oklch(0.88 0.11 88), oklch(0.76 0.13 72) 55%, oklch(0.66 0.12 62));
+  --gradient-card: linear-gradient(180deg, oklch(0.23 0.028 180), oklch(0.21 0.026 180));
+  --shadow-elegant: 0 18px 40px -18px oklch(0 0 0 / 0.6);
+  --shadow-glow: 0 0 0 1px oklch(0.8 0.13 80 / 0.25), 0 12px 36px -12px oklch(0.8 0.13 80 / 0.35);
 }
 
 @layer base {
   * {
     border-color: var(--color-border);
   }
-
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
   }
+}
+
+@utility font-display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+}
+
+@utility quran-text {
+  font-family: var(--font-arabic);
+  direction: rtl;
+  line-height: 2.25;
+  word-spacing: 0.05em;
+}
+
+@utility urdu-text {
+  font-family: var(--font-urdu);
+  direction: rtl;
+  line-height: 2.3;
+}
+
+@utility girih {
+  background-image:
+    linear-gradient(45deg, var(--pattern-line) 1px, transparent 1px),
+    linear-gradient(-45deg, var(--pattern-line) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+@utility ayah-mark {
+  font-family: var(--font-naskh);
+}
+
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@utility bg-hero {
+  background-image: var(--gradient-hero);
+}
+
+@utility bg-gold-gradient {
+  background-image: var(--gradient-gold);
+}
+
+@utility bg-card-gradient {
+  background-image: var(--gradient-card);
+}
+
+@utility text-gold-gradient {
+  background-image: var(--gradient-gold);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility shadow-elegant {
+  box-shadow: var(--shadow-elegant);
+}
+
+@utility shadow-glow {
+  box-shadow: var(--shadow-glow);
+}
+
+@keyframes alaq-fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes alaq-glow {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.06); }
+}
+
+@keyframes alaq-pulse-ring {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+@utility animate-fade-up {
+  animation: alaq-fade-up 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@utility animate-glow {
+  animation: alaq-glow 5s ease-in-out infinite;
+}
+
+@utility animate-pulse-ring {
+  animation: alaq-pulse-ring 1.8s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up, .animate-glow, .animate-pulse-ring { animation: none; }
+}
+
+/* Google sign-in button: Google's light/dark brand themes (required by their guidelines). */
+@utility google-btn {
+  background-color: #ffffff;
+  border: 1px solid #747775;
+  color: #1f1f1f;
+}
+.dark .google-btn {
+  background-color: #131314;
+  border-color: #8e918f;
+  color: #e3e3e3;
+}
+
+/* Mushaf-style reading page: a gilded double frame around the text. */
+@utility mushaf-frame {
+  position: relative;
+  border: 1px solid color-mix(in oklch, var(--gold) 55%, transparent);
+  box-shadow:
+    inset 0 0 0 5px var(--card),
+    inset 0 0 0 6px color-mix(in oklch, var(--gold) 35%, transparent),
+    var(--shadow-elegant);
+}
+
+/* Surah title cartouche on the reading page. */
+@utility surah-cartouche {
+  background-image:
+    linear-gradient(90deg, transparent, color-mix(in oklch, var(--gold) 18%, transparent) 20%, color-mix(in oklch, var(--gold) 18%, transparent) 80%, transparent),
+    var(--gradient-hero);
+  border-block: 1px solid color-mix(in oklch, var(--gold) 5%, transparent);
+}
+
+/* Read / Listen section switch. */
+@utility section-switch {
+  background-color: var(--secondary);
+  border: 1px solid var(--border);
+}
+
+/* Premium gilded ring around the voice teacher's medallion. */
+@utility teacher-ring {
+  background: conic-gradient(from 140deg, var(--gold), color-mix(in oklch, var(--gold) 35%, transparent), var(--gold), color-mix(in oklch, var(--gold) 55%, var(--primary)), var(--gold));
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--gold) 40%, transparent), var(--shadow-glow);
+}
+
+/* One printed mushaf page: the illuminated lapis-and-gold frame drawn around cream paper. */
+@utility mushaf-page {
+  position: relative;
+  color: var(--paper-ink);
+  background-color: var(--paper);
+  border-style: solid;
+  border-width: 2.25rem;
+  border-image-source: url("/images/mushaf-frame.jpg");
+  border-image-slice: 192 fill;
+  border-image-repeat: round;
+  box-shadow: var(--shadow-elegant);
+  @media (min-width: 768px) {
+    border-width: 3.5rem;
+  }
+}
+
+/* Surah title band at the top of a surah's first page. */
+@utility surah-banner {
+  background-color: var(--lapis);
+  color: var(--lapis-foreground);
+  border: 1px solid var(--gold);
+  box-shadow:
+    inset 0 0 0 3px var(--lapis),
+    inset 0 0 0 4px color-mix(in oklch, var(--gold) 70%, transparent);
+}
+
+/* Gilded page-number medallion at the foot of each page. */
+@utility page-medallion {
+  background-image: var(--gradient-gold);
+  color: var(--gold-foreground);
+  box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px color-mix(in oklch, var(--gold) 70%, transparent);
+}
+
+/* Reading with translation: a plain card that follows the app theme (reuses the page's ink tokens). */
+@utility reading-card {
+  --paper-ink: var(--foreground);
+  --paper-muted: var(--muted-foreground);
+  color: var(--foreground);
+  background-image: var(--gradient-card);
+  border: 1px solid color-mix(in oklch, var(--gold) 35%, var(--border));
+  box-shadow: var(--shadow-elegant);
 }

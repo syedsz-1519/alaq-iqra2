@@ -1,0 +1,507 @@
+import { shareImage } from "@/lib/share";
+import { createFileRoute, Link, notFound, useNavigate, useRouter } from "@tanstack/react-router";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef } from "react";
+import { BookOpen, BookOpenText, Bookmark, BookmarkCheck, ChevronLeft, ChevronRight, Copy, Languages, Pause, Play, Settings2 } from "lucide-react";
+import { toast } from "sonner";
+import {
+  DEFAULT_SETTINGS,
+  LANGS,
+  LANG_IDS,
+  extraTranslationQuery,
+  normalizeSettings,
+  type LangId,
+  surahListQuery,
+  surahQuery,
+  surahTextUrl,
+  toArabicDigits,
+  type ReadingView,
+  type Settings,
+  type VerseRow,
+} from "@/lib/quran";
+import { KEYS, useStored, writeStored } from "@/lib/storage";
+import { toggleBookmark, useBookmarks, type LastRead } from "@/lib/reading";
+import { useAudioPlayer } from "@/components/alaq/audio-player";
+import { ErrorNotice } from "@/components/alaq/app-shell";
+import { OfflineIndicator, TextSavedBadge } from "@/components/alaq/offline-badges";
+import { QuranSections } from "@/components/alaq/quran-sections";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Slider } from "@/components/ui/slider";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { pageBudget, paginate } from "@/lib/mushaf";
+
+export const Route = createFileRoute("/quran/$surah")({
+  validateSearch: (s: Record<string, unknown>): { ayah?: number } => {
+    const n = Number(s["ayah"]);
+    return Number.isInteger(n) && n > 0 ? { ayah: n } : {};
+  },
+  loader: async ({ params, context }) => {
+    const n = Number(params.surah);
+    if (!Number.isInteger(n) || n < 1 || n > 114) throw notFound();
+    const [data] = await Promise.all([
+      context.queryClient.ensureQueryData(surahQuery(n)),
+      context.queryClient.ensureQueryData(surahListQuery()),
+    ]);
+    return { englishName: data.meta.englishName, translation: data.meta.englishNameTranslation, number: n };
+  },
+  head: ({ loaderData, match }) => {
+    const title = loaderData
+      ? `Read Surah ${loaderData.englishName} (${loaderData.number}) with translation | Alaq`
+      : "Surah — Alaq";
+    const description = loaderData
+      ? `Read Surah ${loaderData.englishName} (${loaderData.translation}) in Uthmani Arabic with English, Urdu, Roman Urdu, Telugu and Marathi translation.`
+      : "Read and listen to the Holy Quran.";
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "article" },
+        ...shareImage(match.context.origin),
+      ],
+    };
+  },
+  errorComponent: SurahError,
+  notFoundComponent: () => (
+    <div className="mx-auto max-w-xl px-4 py-16">
+      <ErrorNotice message="That surah doesn't exist. The Quran has 114 surahs." />
+    </div>
+  ),
+  component: SurahReader,
+});
+
+function SurahError() {
+  const router = useRouter();
+  return (
+    <div className="mx-auto max-w-xl px-4 py-16">
+      <ErrorNotice message="This surah couldn't be loaded." onRetry={() => router.invalidate()} />
+    </div>
+  );
+}
+
+const BISMILLAH = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
+
+type PageRow = VerseRow & { translation?: string | undefined };
+
+function SurahReader() {
+  const n = Number(Route.useParams().surah);
+  const { ayah: targetAyah } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
+  const { data } = useSuspenseQuery(surahQuery(n));
+  const { data: surahs } = useSuspenseQuery(surahListQuery());
+  const [rawSettings, setSettings] = useStored<Settings>(KEYS.settings, DEFAULT_SETTINGS);
+  const settings = normalizeSettings(rawSettings);
+  const player = useAudioPlayer();
+  const view = settings.view;
+  const setView = (v: ReadingView) => setSettings((p) => ({ ...normalizeSettings(p), view: v }));
+  // One reading language, chosen from the dropdown; it is also the language spoken after each ayah.
+  const lang: LangId = settings.translations[0] ?? "en";
+  const setLang = (l: LangId) => {
+    setSettings((p) => ({ ...normalizeSettings(p), translations: [l] }));
+    if (player.voiceTranslation !== "none") player.setVoiceTranslation(l);
+  };
+  const { data: extraData } = useQuery(extraTranslationQuery(lang, n));
+  const [bookmarks, setBookmarks] = useBookmarks();
+  const { meta, verses } = data;
+
+  const playingHere = player.surah === n;
+  const currentAyah = playingHere ? (player.ayahs[player.index]?.numberInSurah ?? null) : null;
+
+  const rows: PageRow[] = useMemo(
+    () =>
+      verses.map((v) => ({
+        ...v,
+        translation: lang === "en" ? v.en : lang === "ur" ? v.ur : extraData?.[v.numberInSurah - 1],
+      })),
+    [verses, lang, extraData],
+  );
+  // Arabic-only reading is laid out as illuminated mushaf pages; with translation it is one flowing list.
+  const pages = useMemo(
+    () => (view === "arabic" ? paginate(rows, pageBudget(view, settings.arabicSize), view) : [rows]),
+    [rows, view, settings.arabicSize],
+  );
+  const paged = view === "arabic";
+
+  // Jump to the requested ayah.
+  useEffect(() => {
+    if (!targetAyah) {
+      window.scrollTo({ top: 0 });
+      return;
+    }
+    const t = setTimeout(() => {
+      document.getElementById(`ayah-${targetAyah}`)?.scrollIntoView({ block: "center" });
+    }, 60);
+    return () => clearTimeout(t);
+  }, [n, targetAyah]);
+
+  // When listening to this surah, follow the recitation while reading.
+  useEffect(() => {
+    if (currentAyah && player.playing) {
+      document.getElementById(`ayah-${currentAyah}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
+    }
+  }, [currentAyah, player.playing]);
+
+  // Remember where the reader is (continue-reading).
+  const lastWrite = useRef(0);
+  useEffect(() => {
+    const save = (ayah: number) => {
+      writeStored<LastRead>(KEYS.lastRead, {
+        surah: n,
+        ayah,
+        englishName: meta.englishName,
+        name: meta.name,
+        total: meta.numberOfAyahs,
+        at: Date.now(),
+      });
+    };
+    save(targetAyah ?? 1);
+    const obs = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.find((e) => e.isIntersecting);
+        if (!visible) return;
+        const a = Number((visible.target as HTMLElement).dataset["ayah"]);
+        if (a && Date.now() - lastWrite.current > 400) {
+          lastWrite.current = Date.now();
+          save(a);
+        }
+      },
+      { rootMargin: "-35% 0px -55% 0px" },
+    );
+    document.querySelectorAll("[data-ayah]").forEach((el) => obs.observe(el));
+    return () => obs.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [n, view, pages.length]);
+
+  const onBookmark = (v: VerseRow) => {
+    const had = bookmarks.some((b) => b.surah === n && b.ayah === v.numberInSurah);
+    setBookmarks((list) =>
+      toggleBookmark(list, { surah: n, ayah: v.numberInSurah, englishName: meta.englishName, preview: v.en.slice(0, 120) }),
+    );
+    toast(had ? "Bookmark removed" : `Bookmarked ${meta.englishName} ${n}:${v.numberInSurah}`);
+  };
+
+  const onCopy = async (v: PageRow) => {
+    const text = `${v.arabic}\n\n${v.translation ?? v.en}\n\n— Quran ${n}:${v.numberInSurah} (${meta.englishName})`;
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Ayah copied");
+    } catch {
+      toast.error("Couldn't copy on this device");
+    }
+  };
+
+  /** Plays one ayah: Arabic only, or Arabic followed by the chosen language. */
+  const listen = (ayah: number, withTranslation: boolean) => {
+    const voice = withTranslation ? lang : "none";
+    if (playingHere && currentAyah === ayah && player.voiceTranslation === voice) {
+      player.toggle();
+      return;
+    }
+    player.setVoiceTranslation(voice);
+    void player.playSurah(n, ayah);
+  };
+  const isPlaying = (ayah: number, withTranslation: boolean) =>
+    player.playing && currentAyah === ayah && (player.voiceTranslation !== "none") === withTranslation;
+
+  const prevSurah = n > 1 ? surahs[n - 2] : null;
+  const nextSurah = n < 114 ? surahs[n] : null;
+
+  return (
+    <div className="mx-auto max-w-3xl px-4 pt-6">
+      <OfflineIndicator className="mb-4" />
+      <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+        <Link to="/quran" className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground">
+          <ChevronLeft className="size-4" /> All surahs
+        </Link>
+        <QuranSections active="read" surah={n} />
+      </div>
+
+      <div className="sticky top-16 z-20 -mx-4 mt-4 space-y-2 border-b border-border/60 bg-background/90 px-4 py-2.5 backdrop-blur">
+        <div className="flex flex-wrap items-center gap-2">
+          <div role="group" aria-label="Reading view" className="inline-flex h-9 items-center rounded-full border border-border bg-card p-0.5 text-xs font-medium">
+            {(["arabic", "translated"] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                aria-pressed={view === v}
+                onClick={() => setView(v)}
+                className={cn(
+                  "inline-flex h-8 items-center gap-1.5 rounded-full px-3.5 transition-colors",
+                  view === v ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {v === "arabic" ? <BookOpen className="size-3.5" /> : <BookOpenText className="size-3.5" />}
+                {v === "arabic" ? "Arabic only" : "With translation"}
+              </button>
+            ))}
+          </div>
+          <Select value={lang} onValueChange={(v) => setLang(v as LangId)}>
+            <SelectTrigger aria-label="Translation language" className="h-9 w-auto min-w-40 gap-2 rounded-full bg-card text-xs">
+              <Languages className="size-3.5 text-gold" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {LANG_IDS.map((l) => (
+                <SelectItem key={l} value={l}>
+                  <span className="font-medium">{LANGS[l].label}</span>
+                  {LANGS[l].native !== LANGS[l].label && <span className="ml-1.5 text-muted-foreground">{LANGS[l].native}</span>}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="h-9 rounded-full bg-card text-xs" aria-label="Arabic text size">
+                <Settings2 /> Aa
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64">
+              <p className="mb-3 text-sm font-medium">Arabic text size</p>
+              <Slider
+                min={22}
+                max={52}
+                step={2}
+                value={[settings.arabicSize]}
+                onValueChange={([v]) => setSettings((p) => ({ ...DEFAULT_SETTINGS, ...p, arabicSize: v ?? DEFAULT_SETTINGS.arabicSize }))}
+              />
+              <p className="quran-text mt-3 text-center" style={{ fontSize: settings.arabicSize }}>
+                ٱلْحَمْدُ لِلَّهِ
+              </p>
+            </PopoverContent>
+          </Popover>
+          <div className="ml-auto">
+            <TextSavedBadge url={surahTextUrl(n)} />
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Select
+            value={String(n)}
+            onValueChange={(v) => navigate({ to: "/quran/$surah", params: { surah: v }, search: {} })}
+          >
+            <SelectTrigger aria-label="Go to surah" className="h-8 w-44 bg-card text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="max-h-80">
+              {surahs.map((s) => (
+                <SelectItem key={s.number} value={String(s.number)}>
+                  {s.number}. {s.englishName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={targetAyah ? String(targetAyah) : ""}
+            onValueChange={(v) => navigate({ search: { ayah: Number(v) }, replace: true })}
+          >
+            <SelectTrigger aria-label="Go to ayah" className="h-8 w-28 bg-card text-xs">
+              <SelectValue placeholder="Ayah" />
+            </SelectTrigger>
+            <SelectContent className="max-h-72">
+              {verses.map((v) => (
+                <SelectItem key={v.numberInSurah} value={String(v.numberInSurah)}>
+                  Ayah {v.numberInSurah}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="ml-auto text-[11px] text-muted-foreground">
+            {LANGS[lang].translator}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-6 space-y-8">
+        {pages.map((page, pi) => (
+          <article
+            key={`${view}-${pi}`}
+            aria-label={paged ? `Page ${pi + 1} of ${pages.length}` : `Surah ${meta.englishName} with translation`}
+            className={paged ? "mushaf-page min-h-[28rem]" : "reading-card rounded-[1.75rem]"}
+          >
+            <div className={cn("flex flex-col", paged ? "px-3 py-4 md:px-8 md:py-6" : "px-5 py-6 md:px-10 md:py-9")}>
+              {paged && (
+                <div className="flex items-center justify-between border-b border-gold/40 pb-1.5 text-[11px] text-paper-muted">
+                  <span className="font-display">{meta.englishName}</span>
+                  <span className="quran-text text-base text-paper-ink">{meta.name}</span>
+                </div>
+              )}
+
+              {pi === 0 && (
+                <div className={paged ? "mt-5" : ""}>
+                  <div className="surah-banner rounded-xl px-4 py-3 text-center">
+                    <p className="quran-text text-3xl leading-[1.6] md:text-4xl">{meta.name}</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.25em] opacity-90">
+                      Surah {n} · {meta.englishName} · {meta.revelationType} · {meta.numberOfAyahs} ayahs
+                    </p>
+                  </div>
+                  <h1 className="sr-only">
+                    Surah {meta.englishName} ({meta.englishNameTranslation})
+                  </h1>
+                  {data.bismillah && (
+                    <p className="quran-text mt-5 text-center text-3xl text-paper-ink md:text-[2.1rem]">{BISMILLAH}</p>
+                  )}
+                </div>
+              )}
+
+              <div className="mt-5 flex-1">
+                {view === "arabic" ? (
+                  <p dir="rtl" className="quran-text text-justify leading-[2.6] [text-align-last:center]" style={{ fontSize: settings.arabicSize }}>
+                    {page.map((v) => {
+                      const active = currentAyah === v.numberInSurah;
+                      return (
+                        <span
+                          key={v.numberInSurah}
+                          id={`ayah-${v.numberInSurah}`}
+                          data-ayah={v.numberInSurah}
+                          className={cn(
+                            "scroll-mt-48 rounded-lg transition-colors",
+                            active && "bg-gold/25",
+                            targetAyah === v.numberInSurah && !active && "bg-gold/15",
+                          )}
+                        >
+                          {v.arabic}{" "}
+                          <button
+                            type="button"
+                            onClick={() => listen(v.numberInSurah, false)}
+                            aria-label={`Listen to ayah ${v.numberInSurah}`}
+                            className="ayah-mark whitespace-nowrap text-[0.7em] text-gold hover:opacity-70"
+                          >
+                            ﴿{toArabicDigits(v.numberInSurah)}﴾
+                          </button>{" "}
+                        </span>
+                      );
+                    })}
+                  </p>
+                ) : (
+                  <ol className="divide-y divide-gold/30">
+                    {page.map((v) => {
+                      const active = currentAyah === v.numberInSurah;
+                      const marked = bookmarks.some((b) => b.surah === n && b.ayah === v.numberInSurah);
+                      return (
+                        <li
+                          key={v.numberInSurah}
+                          id={`ayah-${v.numberInSurah}`}
+                          data-ayah={v.numberInSurah}
+                          className={cn(
+                            "scroll-mt-48 py-5 transition-colors first:pt-0 last:pb-0",
+                            active && "-mx-3 rounded-xl bg-gold/15 px-3",
+                            targetAyah === v.numberInSurah && !active && "-mx-3 rounded-xl bg-gold/10 px-3",
+                          )}
+                        >
+                          <p dir="rtl" className="quran-text text-right leading-[2.2]" style={{ fontSize: settings.arabicSize }}>
+                            {v.arabic} <span className="ayah-mark whitespace-nowrap text-[0.7em] text-gold">﴿{toArabicDigits(v.numberInSurah)}﴾</span>
+                          </p>
+                          {v.translation ? (
+                            <p
+                              dir={LANGS[lang].dir}
+                              className={cn(
+                                "mt-3 leading-relaxed text-paper-ink/85",
+                                lang === "ur" ? "urdu-text text-right text-lg" : "text-[1.02rem]",
+                              )}
+                            >
+                              {v.translation}
+                            </p>
+                          ) : (
+                            <p className="mt-3 text-sm text-paper-muted">Loading {LANGS[lang].label} translation…</p>
+                          )}
+                          <div className="mt-3 flex flex-wrap items-center gap-1 text-paper-muted">
+                            <span className="mr-auto text-xs font-medium tabular-nums">
+                              {n}:{v.numberInSurah}
+                              {v.sajda && <span className="ml-1 text-gold">· Sajdah</span>}
+                            </span>
+                            <ListenBtn active={isPlaying(v.numberInSurah, false)} onClick={() => listen(v.numberInSurah, false)}>
+                              Arabic
+                            </ListenBtn>
+                            <ListenBtn active={isPlaying(v.numberInSurah, true)} onClick={() => listen(v.numberInSurah, true)}>
+                              + {LANGS[lang].label}
+                            </ListenBtn>
+                            <ActionBtn label={marked ? "Remove bookmark" : "Bookmark ayah"} onClick={() => onBookmark(v)}>
+                              {marked ? <BookmarkCheck className="size-4 text-gold" /> : <Bookmark className="size-4" />}
+                            </ActionBtn>
+                            <ActionBtn label="Copy ayah" onClick={() => onCopy(v)}>
+                              <Copy className="size-4" />
+                            </ActionBtn>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                )}
+              </div>
+
+              {paged && <div className="mt-6 flex justify-center">
+                <span className="page-medallion grid size-9 place-items-center rounded-full font-display text-sm font-semibold" title={`Page ${pi + 1} of ${pages.length}`}>
+                  {toArabicDigits(pi + 1)}
+                </span>
+              </div>}
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <nav className="mt-8 grid grid-cols-2 gap-3">
+        {prevSurah ? (
+          <Link
+            to="/quran/$surah"
+            params={{ surah: String(prevSurah.number) }}
+            search={{}}
+            className="rounded-2xl border border-border bg-card p-4 hover:bg-secondary"
+          >
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <ChevronLeft className="size-3.5" /> Previous
+            </span>
+            <span className="font-display font-semibold">{prevSurah.englishName}</span>
+          </Link>
+        ) : (
+          <span />
+        )}
+        {nextSurah && (
+          <Link
+            to="/quran/$surah"
+            params={{ surah: String(nextSurah.number) }}
+            search={{}}
+            className="rounded-2xl border border-border bg-card p-4 text-right hover:bg-secondary"
+          >
+            <span className="flex items-center justify-end gap-1 text-xs text-muted-foreground">
+              Next <ChevronRight className="size-3.5" />
+            </span>
+            <span className="font-display font-semibold">{nextSurah.englishName}</span>
+          </Link>
+        )}
+      </nav>
+    </div>
+  );
+}
+
+function ListenBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "inline-flex h-7 items-center gap-1 rounded-full border px-2.5 text-xs font-medium transition-colors",
+        active ? "border-lapis bg-lapis text-lapis-foreground" : "border-gold/50 text-paper-ink hover:bg-gold/15",
+      )}
+    >
+      {active ? <Pause className="size-3" /> : <Play className="size-3" />}
+      {children}
+    </button>
+  );
+}
+
+function ActionBtn({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+      className="grid size-8 place-items-center rounded-full text-paper-muted transition-colors hover:bg-gold/15 hover:text-paper-ink"
+    >
+      {children}
+    </button>
+  );
+}
