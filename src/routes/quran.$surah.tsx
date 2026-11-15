@@ -1,8 +1,8 @@
 import { shareImage } from "@/lib/share";
 import { createFileRoute, Link, notFound, useNavigate, useRouter } from "@tanstack/react-router";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { BookOpen, BookOpenText, Bookmark, BookmarkCheck, ChevronLeft, ChevronRight, Copy, History, Languages, Pause, Play, Settings2, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { BookOpen, BookOpenText, Bookmark, BookmarkCheck, ChevronLeft, ChevronRight, Copy, History, Languages, Pause, Play, Settings2, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   DEFAULT_SETTINGS,
@@ -20,7 +20,7 @@ import {
   type VerseRow,
 } from "@/lib/quran";
 import { KEYS, readStored, useStored, writeStored } from "@/lib/storage";
-import { recordProgress, resumeAyah, toggleBookmark, useBookmarks, type LastRead, type ProgressMap } from "@/lib/reading";
+import { recordProgress, resumePage, toggleBookmark, useBookmarks, type LastRead, type ProgressMap } from "@/lib/reading";
 import { useAudioPlayer } from "@/components/alaq/audio-player";
 import { ErrorNotice } from "@/components/alaq/app-shell";
 import { OfflineIndicator, TextSavedBadge } from "@/components/alaq/offline-badges";
@@ -30,7 +30,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { paginate } from "@/lib/mushaf";
+import { pageOfAyah, pageRange, paginate } from "@/lib/mushaf";
 
 export const Route = createFileRoute("/quran/$surah")({
   validateSearch: (s: Record<string, unknown>): { ayah?: number } => {
@@ -128,30 +128,20 @@ function SurahReader() {
       })),
     [verses, lang, extraData],
   );
-  // Arabic-only reading is laid out as illuminated mushaf pages of 10 ayahs; with translation it is one flowing list.
-  const pages = useMemo(() => (view === "arabic" ? paginate(rows) : [rows]), [rows, view]);
+  // Both views are split into pages of 10 ayahs, shown one page at a time for reciting.
+  // Only Arabic-only reading gets the ornate mushaf frame.
+  const pages = useMemo(() => paginate(rows), [rows]);
   const paged = view === "arabic";
+  const totalPages = pages.length;
+  const [pageIndex, setPageIndex] = useState(() => (targetAyah ? pageOfAyah(targetAyah) : 0));
+  const pageIdx = Math.min(pageIndex, totalPages - 1);
+  const pageIdxRef = useRef(pageIdx);
+  pageIdxRef.current = pageIdx;
+  const readerTop = useRef<HTMLDivElement>(null);
+  /** Set once the reader turns a page, scrolls or listens — only then does the saved spot move. */
+  const interacted = useRef(false);
 
-  // Jump to the requested ayah.
-  useEffect(() => {
-    if (!targetAyah) {
-      window.scrollTo({ top: 0 });
-      return;
-    }
-    const t = setTimeout(() => {
-      document.getElementById(`ayah-${targetAyah}`)?.scrollIntoView({ block: "center" });
-    }, 60);
-    return () => clearTimeout(t);
-  }, [n, targetAyah]);
-
-  // When listening to this surah, follow the recitation while reading.
-  useEffect(() => {
-    if (currentAyah && player.playing) {
-      document.getElementById(`ayah-${currentAyah}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
-    }
-  }, [currentAyah, player.playing]);
-
-  // Remember where the reader is, per surah and as the global "continue reading" spot.
+  // Remember where the reader is, per surah (ayah + 10-ayah page) and as the global "continue reading" spot.
   const saveSpot = useCallback(
     (ayah: number) => {
       const map = readStored<ProgressMap>(KEYS.progress, {});
@@ -170,29 +160,127 @@ function SurahReader() {
     [n, meta.englishName, meta.name, meta.numberOfAyahs],
   );
 
-  // Offer "continue from ayah X" when a surah is reopened without a specific ayah.
-  const [offerResume, setOfferResume] = useState<number | null>(null);
+  // One reading session = one visit to this surah, measured for page-turn analytics.
+  const session = useRef({ surah: n, startedAt: 0, startPage: 0, pages: new Set<number>(), resumed: false, done: false });
   useEffect(() => {
-    setOfferResume(targetAyah ? null : resumeAyah(readStored<ProgressMap>(KEYS.progress, {}), n));
+    const startPage = targetAyah ? pageOfAyah(targetAyah) : 0;
+    session.current = { surah: n, startedAt: Date.now(), startPage, pages: new Set([startPage]), resumed: false, done: false };
+    interacted.current = false;
+    window.__lovableEvents?.track?.("project.reading_session_started", {
+      surah: n,
+      view,
+      total_pages: totalPages,
+      start_page: startPage + 1,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [n]);
+
+  const completeSession = useCallback(() => {
+    const s = session.current;
+    if (s.done || s.surah !== n) return;
+    s.done = true;
+    window.__lovableEvents?.track?.("project.reading_session_completed", {
+      surah: n,
+      view,
+      total_pages: totalPages,
+      pages_viewed: s.pages.size,
+      start_page: s.startPage + 1,
+      resumed: s.resumed,
+      duration_seconds: Math.round((Date.now() - s.startedAt) / 1000),
+    });
+  }, [n, view, totalPages]);
+
+  /** Shows another 10-ayah page. A jump (bookmark, go-to) only peeks; every other turn saves the new page. */
+  const turnPage = useCallback(
+    (to: number, method: "button" | "swipe" | "keyboard" | "audio" | "jump" | "resume", focusAyah?: number) => {
+      const next = Math.max(0, Math.min(to, totalPages - 1));
+      const from = pageIdxRef.current;
+      if (next !== from) {
+        setPageIndex(next);
+        pageIdxRef.current = next;
+        session.current.pages.add(next);
+        if (method === "resume") session.current.resumed = true;
+        window.__lovableEvents?.track?.("project.quran_page_turned", {
+          surah: n,
+          from_page: from + 1,
+          to_page: next + 1,
+          total_pages: totalPages,
+          direction: next > from ? "forward" : "back",
+          method,
+          view,
+        });
+      }
+      if (method !== "jump") {
+        interacted.current = true;
+        saveSpot(focusAyah ?? pageRange(next, meta.numberOfAyahs).from);
+      }
+      setTimeout(() => {
+        if (focusAyah) document.getElementById(`ayah-${focusAyah}`)?.scrollIntoView({ block: "center" });
+        else if (next !== from) readerTop.current?.scrollIntoView({ block: "start" });
+      }, 60);
+    },
+    [n, view, totalPages, meta.numberOfAyahs, saveSpot],
+  );
+
+  // Open on the requested ayah's page (deep link or bookmark), otherwise at the top of page 1.
+  useEffect(() => {
+    if (!targetAyah) {
+      setPageIndex(0);
+      window.scrollTo({ top: 0 });
+      return;
+    }
+    setPageIndex(pageOfAyah(targetAyah));
+    const t = setTimeout(() => {
+      document.getElementById(`ayah-${targetAyah}`)?.scrollIntoView({ block: "center" });
+    }, 60);
+    return () => clearTimeout(t);
+  }, [n, targetAyah]);
+
+  // When listening to this surah, follow the recitation — turning the page when it moves on.
+  useEffect(() => {
+    if (!currentAyah || !player.playing) return;
+    if (pageOfAyah(currentAyah) !== pageIdxRef.current) {
+      turnPage(pageOfAyah(currentAyah), "audio", currentAyah);
+      return;
+    }
+    interacted.current = true;
+    saveSpot(currentAyah);
+    document.getElementById(`ayah-${currentAyah}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
+    if (currentAyah === meta.numberOfAyahs) completeSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentAyah, player.playing]);
+
+  // Offer to reopen the saved page when a surah is opened without a specific ayah.
+  const [offerResume, setOfferResume] = useState<{ page: number; ayah: number } | null>(null);
+  useEffect(() => {
+    if (targetAyah) return setOfferResume(null);
+    const map = readStored<ProgressMap>(KEYS.progress, {});
+    const page = resumePage(map, n);
+    setOfferResume(page == null ? null : { page, ayah: map[n]?.ayah ?? pageRange(page, meta.numberOfAyahs).from });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [n]);
 
   // Only real reading moves the saved spot — merely opening a surah (or peeking at a bookmark) never overwrites it.
   useEffect(() => {
-    let moved = false;
     const openedAt = Date.now();
     const markMoved = () => {
-      moved = true;
+      interacted.current = true;
+    };
+    const checkEnd = () => {
+      if (!interacted.current) return;
+      const last = document.getElementById(`ayah-${meta.numberOfAyahs}`);
+      if (last && last.getBoundingClientRect().bottom <= window.innerHeight) {
+        saveSpot(meta.numberOfAyahs);
+        completeSession();
+      }
     };
     const onScroll = () => {
-      if (Date.now() - openedAt > 800) moved = true;
-      if (!moved) return;
-      const last = document.getElementById(`ayah-${meta.numberOfAyahs}`);
-      if (last && last.getBoundingClientRect().bottom <= window.innerHeight) saveSpot(meta.numberOfAyahs);
+      if (Date.now() - openedAt > 800) interacted.current = true;
+      checkEnd();
     };
     const obs = new IntersectionObserver(
       (entries) => {
-        if (!moved) return;
+        if (!interacted.current) return;
         const visible = entries.find((e) => e.isIntersecting);
         const a = visible ? Number((visible.target as HTMLElement).dataset["ayah"]) : 0;
         if (a) saveSpot(a);
@@ -200,6 +288,8 @@ function SurahReader() {
       { rootMargin: "-35% 0px -55% 0px" },
     );
     document.querySelectorAll("[data-ayah]").forEach((el) => obs.observe(el));
+    // A short last page may fit on screen without any scrolling.
+    const endTimer = setTimeout(checkEnd, 1000);
     const opts = { passive: true } as const;
     window.addEventListener("wheel", markMoved, opts);
     window.addEventListener("touchmove", markMoved, opts);
@@ -207,19 +297,52 @@ function SurahReader() {
     window.addEventListener("scroll", onScroll, opts);
     return () => {
       obs.disconnect();
+      clearTimeout(endTimer);
       window.removeEventListener("wheel", markMoved);
       window.removeEventListener("touchmove", markMoved);
       window.removeEventListener("keydown", markMoved);
       window.removeEventListener("scroll", onScroll);
     };
-  }, [n, view, pages.length, meta.numberOfAyahs, saveSpot]);
+  }, [n, view, pageIdx, meta.numberOfAyahs, saveSpot, completeSession]);
 
-  // Listening along also counts as reading.
+  // Arrow keys turn pages: in Arabic-only (right-to-left) the next page is to the left.
   useEffect(() => {
-    if (currentAyah && player.playing) saveSpot(currentAyah);
-  }, [currentAyah, player.playing, saveSpot]);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.closest("input, textarea, select, [role=listbox], [role=dialog], [contenteditable=true]") || t.isContentEditable)) return;
+      const forwardKey = paged ? "ArrowLeft" : "ArrowRight";
+      const backKey = paged ? "ArrowRight" : "ArrowLeft";
+      if (e.key === forwardKey) turnPage(pageIdxRef.current + 1, "keyboard");
+      else if (e.key === backKey) turnPage(pageIdxRef.current - 1, "keyboard");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [paged, turnPage]);
 
-  const goToAyah = (ayah: number) => navigate({ search: { ayah }, replace: true });
+  // Swipe to turn: like a printed mushaf in Arabic-only, like a book in the translated view.
+  const swipe = useRef<{ x: number; y: number } | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    swipe.current = t ? { x: t.clientX, y: t.clientY } : null;
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const start = swipe.current;
+    const t = e.changedTouches[0];
+    swipe.current = null;
+    if (!start || !t || totalPages < 2) return;
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    const forward = paged ? dx > 0 : dx < 0;
+    turnPage(pageIdxRef.current + (forward ? 1 : -1), "swipe");
+  };
+
+  const goToAyah = (ayah: number) => {
+    turnPage(pageOfAyah(ayah), "jump", ayah);
+    void navigate({ search: { ayah }, replace: true });
+  };
+  const range = pageRange(pageIdx, meta.numberOfAyahs);
   const hereMarks = useMemo(
     () => bookmarks.filter((b) => b.surah === n).sort((a, b) => a.ayah - b.ayah),
     [bookmarks, n],
@@ -386,7 +509,7 @@ function SurahReader() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <Select value={targetAyah ? String(targetAyah) : ""} onValueChange={(v) => navigate({ search: { ayah: Number(v) }, replace: true })}>
+                  <Select value={targetAyah ? String(targetAyah) : ""} onValueChange={(v) => goToAyah(Number(v))}>
                     <SelectTrigger aria-label="Go to ayah" className="h-9 w-24 bg-card text-xs">
                       <SelectValue placeholder="Ayah" />
                     </SelectTrigger>
@@ -450,13 +573,14 @@ function SurahReader() {
         <div className="mt-4 flex items-center gap-2 rounded-2xl border border-gold/40 bg-card p-2 pl-3 shadow-sm">
           <History className="size-4 shrink-0 text-gold" />
           <p className="min-w-0 flex-1 text-sm">
-            You stopped at <span className="font-semibold">ayah {offerResume}</span>
+            You stopped on <span className="font-semibold">page {offerResume.page + 1}</span>
+            <span className="text-muted-foreground"> · ayah {offerResume.ayah}</span>
           </p>
           <Button
             size="sm"
             className="h-8 rounded-full"
             onClick={() => {
-              goToAyah(offerResume);
+              turnPage(offerResume.page, "resume", offerResume.ayah);
               setOfferResume(null);
             }}
           >
@@ -464,7 +588,7 @@ function SurahReader() {
           </Button>
           <button
             type="button"
-            aria-label="Start from the beginning instead"
+            aria-label="Start from page 1 instead"
             onClick={() => setOfferResume(null)}
             className="grid size-8 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground"
           >
@@ -473,16 +597,30 @@ function SurahReader() {
         </div>
       )}
 
-      <div className="mt-6 space-y-8">
-        {pages.map((page, pi) => (
+      <div ref={readerTop} className="scroll-mt-32" />
+      {totalPages > 1 && (
+        <PageTurner
+          className="mt-4"
+          compact
+          page={pageIdx}
+          total={totalPages}
+          from={range.from}
+          to={range.to}
+          onPrev={() => turnPage(pageIdx - 1, "button")}
+          onNext={() => turnPage(pageIdx + 1, "button")}
+        />
+      )}
+
+      <div className="mt-4 space-y-8" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        {pages.map((page, pi) => pi !== pageIdx ? null : (
           <article
             key={`${view}-${pi}`}
-            aria-label={paged ? `Page ${pi + 1} of ${pages.length}` : `Surah ${meta.englishName} with translation`}
+            aria-label={`Surah ${meta.englishName}, page ${pi + 1} of ${pages.length}${paged ? "" : ", with translation"}`}
             className={paged ? "mushaf-page min-h-[28rem]" : "reading-card rounded-[1.75rem]"}
           >
             <div className={cn("flex flex-col", paged ? "px-1.5 py-3 sm:px-3 sm:py-4 md:px-8 md:py-6" : "px-4 py-5 sm:px-5 sm:py-6 md:px-10 md:py-9")}>
-              {paged && (
-                <div className="flex items-center justify-between gap-2 border-b border-gold/40 pb-1.5 text-[11px] text-paper-muted">
+              {(paged || totalPages > 1) && (
+                <div className={cn("flex items-center justify-between gap-2 border-b border-gold/40 pb-1.5 text-[11px] text-paper-muted", !paged && "mb-4")}>
                   <span className="font-display">{meta.englishName}</span>
                   {pages.length > 1 && (
                     <span className="tabular-nums">
@@ -607,7 +745,7 @@ function SurahReader() {
                 </p>
               )}
 
-              {paged && <div className="mt-6 flex justify-center">
+              {(paged || totalPages > 1) && <div className="mt-6 flex justify-center">
                 <span className="page-medallion grid size-9 place-items-center rounded-full font-display text-sm font-semibold" title={`Page ${pi + 1} of ${pages.length}`}>
                   {toArabicDigits(pi + 1)}
                 </span>
@@ -616,6 +754,23 @@ function SurahReader() {
           </article>
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <PageTurner
+          className="mt-6"
+          page={pageIdx}
+          total={totalPages}
+          from={range.from}
+          to={range.to}
+          onPrev={() => turnPage(pageIdx - 1, "button")}
+          onNext={() => turnPage(pageIdx + 1, "button")}
+        />
+      )}
+      <p className="mt-3 text-center text-xs text-muted-foreground">
+        <Link to="/quran/plan" search={{ surah: n }} className="inline-flex items-center gap-1 text-primary underline-offset-2 hover:underline">
+          <Sparkles className="size-3.5" /> Make a recitation plan for this surah
+        </Link>
+      </p>
 
       <nav className="mt-8 grid grid-cols-2 gap-3">
         {prevSurah ? (
@@ -648,6 +803,57 @@ function SurahReader() {
         )}
       </nav>
     </div>
+  );
+}
+
+/** Previous / next 10-ayah page, with where you are in the surah. */
+function PageTurner({
+  page,
+  total,
+  from,
+  to,
+  onPrev,
+  onNext,
+  compact,
+  className,
+}: {
+  page: number;
+  total: number;
+  from: number;
+  to: number;
+  onPrev: () => void;
+  onNext: () => void;
+  compact?: boolean;
+  className?: string;
+}) {
+  const btn = compact
+    ? "inline-flex size-10 items-center justify-center rounded-full border border-border bg-card disabled:opacity-40"
+    : "inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full border border-border bg-card px-4 text-sm font-semibold hover:bg-secondary disabled:opacity-40";
+  return (
+    <nav aria-label="Pages" className={cn("flex items-center gap-2", className)}>
+      <button type="button" onClick={onPrev} disabled={page === 0} className={btn} aria-label="Previous page">
+        <ChevronLeft className="size-4" />
+        {!compact && <span>Previous</span>}
+      </button>
+      <div className={cn("min-w-0 text-center", compact ? "flex-1" : "shrink-0 px-1")} aria-live="polite">
+        <p className="text-sm font-semibold tabular-nums">
+          Page {page + 1} <span className="font-normal text-muted-foreground">of {total}</span>
+        </p>
+        <p className="text-[11px] tabular-nums text-muted-foreground">
+          Ayah {from}–{to}
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={onNext}
+        disabled={page >= total - 1}
+        className={cn(btn, !compact && "border-primary bg-primary text-primary-foreground hover:bg-primary/90")}
+        aria-label="Next page"
+      >
+        {!compact && <span>Next</span>}
+        <ChevronRight className="size-4" />
+      </button>
+    </nav>
   );
 }
 
