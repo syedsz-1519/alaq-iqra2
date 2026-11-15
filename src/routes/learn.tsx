@@ -117,7 +117,9 @@ function LearnPage() {
         {track === "tajweed" && (
           <p className="mt-3 inline-flex items-start gap-2 rounded-2xl bg-accent px-3 py-2 text-xs text-accent-foreground">
             <Headphones className="mt-0.5 size-3.5 shrink-0" />
-            Tap <b className="font-semibold">Listen</b> on any Tajweed lesson to hear {t.name} read it with your phone's own voice — no internet or sign-in needed.
+            <span>
+              Tap <b className="font-semibold">Listen</b> on any Tajweed lesson to hear {t.name} read it with your phone's own voice — no internet or sign-in needed.
+            </span>
           </p>
         )}
         {!online && (

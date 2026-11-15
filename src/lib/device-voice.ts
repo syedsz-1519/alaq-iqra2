@@ -17,8 +17,8 @@ export function splitSentences(text: string): string[] {
 /** The spoken lesson for one Tajweed topic, read in the teacher's voice. */
 export function tajweedLessonScript(topic: TajweedTopic, teacher: Pick<Teacher, "name">): SpeechPart[] {
   const parts: SpeechPart[] = [
-    { kind: "intro", lang: "en", text: `Assalamu alaikum. This is ${teacher.name}. Today's lesson is ${topic.title.replace(/—/g, ",")}.` },
-    { kind: "intro", lang: "en", text: `${topic.chapter.replace(/·/g, ",")}.` },
+    { kind: "intro", lang: "en", text: `Assalamu alaikum. This is ${teacher.name}. Today's lesson is ${topic.title.replace(/\s*—\s*/g, ", ")}.` },
+    { kind: "intro", lang: "en", text: `${topic.chapter.replace(/\s*·\s*/g, ", ")}.` },
   ];
   if (topic.letters) {
     parts.push({ kind: "letters", lang: "en", text: "The letters for this rule are shown on your screen." });
