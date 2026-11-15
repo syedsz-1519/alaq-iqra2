@@ -8,7 +8,7 @@ const SEEN_KEY = "alaq:welcome-seen";
 const todayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 const HIDDEN_ON = ["/auth", "/reset-password"];
 
-/** A calm greeting before entering the app, shown once a day. */
+/** A calm greeting when opening the app's home screen, shown once a day. */
 export function WelcomeGate() {
   const { ready, user, displayName } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -20,7 +20,8 @@ export function WelcomeGate() {
     const now = new Date();
     setDate(now);
     try {
-      if (localStorage.getItem(SEEN_KEY) !== todayKey(now)) setOpen(true);
+      // Only greet on the home screen: links to a surah, hadith or dua open straight to it.
+      if (window.location.pathname === "/" && localStorage.getItem(SEEN_KEY) !== todayKey(now)) setOpen(true);
     } catch {
       /* storage unavailable: skip the greeting */
     }
