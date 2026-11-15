@@ -2,7 +2,7 @@ import { shareImage } from "@/lib/share";
 import { createFileRoute, Link, notFound, useNavigate, useRouter } from "@tanstack/react-router";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BookOpen, BookOpenText, Bookmark, BookmarkCheck, ChevronLeft, ChevronRight, Copy, History, Languages, Pause, Play, Settings2, Sparkles, X } from "lucide-react";
+import { BookOpen, BookOpenText, Bookmark, BookmarkCheck, ChevronLeft, ChevronRight, Copy, History, Languages, Pause, Play, Settings2, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   DEFAULT_SETTINGS,
@@ -766,11 +766,6 @@ function SurahReader() {
           onNext={() => turnPage(pageIdx + 1, "button")}
         />
       )}
-      <p className="mt-3 text-center text-xs text-muted-foreground">
-        <Link to="/quran/plan" search={{ surah: n }} className="inline-flex items-center gap-1 text-primary underline-offset-2 hover:underline">
-          <Sparkles className="size-3.5" /> Make a recitation plan for this surah
-        </Link>
-      </p>
 
       <nav className="mt-8 grid grid-cols-2 gap-3">
         {prevSurah ? (
