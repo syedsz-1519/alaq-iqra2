@@ -66,4 +66,5 @@ export const KEYS = {
   dhikr: "alaq:dhikr",
   theme: "alaq:theme",
   bookmarks: "alaq:bookmarks",
+  progress: "alaq:surah-progress",
 } as const;
