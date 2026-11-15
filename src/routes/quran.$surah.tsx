@@ -554,7 +554,11 @@ function SurahReader() {
                             targetAyah === v.numberInSurah && !active && "-mx-3 rounded-xl bg-gold/10 px-3",
                           )}
                         >
-                          <p dir="rtl" className="quran-text text-right leading-[2.2]" style={{ fontSize: arabicFont(settings.arabicSize, 0.26) }}>
+                          <p
+                            dir="rtl"
+                            className={cn("quran-text leading-[2.2]", fatihaOpening && v.numberInSurah === 1 ? "text-center" : "text-right")}
+                            style={{ fontSize: arabicFont(settings.arabicSize, 0.26) }}
+                          >
                             {v.arabic} <span className="ayah-mark whitespace-nowrap text-[0.7em] text-gold">﴿{toArabicDigits(v.numberInSurah)}﴾</span>
                           </p>
                           {v.translation ? (
