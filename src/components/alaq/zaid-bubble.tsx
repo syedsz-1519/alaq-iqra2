@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { useEffect, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { LogIn, Maximize2, Mic, MicOff, PhoneOff, Volume2, X } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { ZAID_TOPICS } from "@/lib/zaid-topics";
@@ -39,8 +39,6 @@ export function ZaidBubble() {
   const [stored, setStored] = useStored<BubbleSpot>(SPOT_KEY, DEFAULT_SPOT);
   const spot = isBubbleSpot(stored) ? stored : DEFAULT_SPOT;
   const [drag, setDrag] = useState<{ dx: number; dy: number; sx: number; sy: number; x: number; y: number; moved: boolean } | null>(null);
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const suppressClick = useRef(false);
 
   if (HIDDEN_ON.includes(pathname) || !vpState) return null;
   const vp = vpState;
@@ -50,7 +48,6 @@ export function ZaidBubble() {
   const onPointerDown = (e: PointerEvent<HTMLButtonElement>) => {
     if (e.button !== 0) return;
     e.currentTarget.setPointerCapture(e.pointerId);
-    suppressClick.current = false;
     setDrag({ dx: e.clientX - rest.x, dy: e.clientY - rest.y, sx: e.clientX, sy: e.clientY, x: rest.x, y: rest.y, moved: false });
   };
   const onPointerMove = (e: PointerEvent<HTMLButtonElement>) => {
@@ -64,7 +61,6 @@ export function ZaidBubble() {
     e.currentTarget.releasePointerCapture(e.pointerId);
     if (drag.moved) {
       setStored(spotFromDrop(drag.x, drag.y, vp.w, vp.h));
-      suppressClick.current = true;
     } else {
       onBubble();
     }
@@ -88,7 +84,6 @@ export function ZaidBubble() {
 
   return (
     <div
-      ref={wrapRef}
       className={cn("fixed left-0 top-0 z-50", !drag && "transition-transform duration-300 ease-out")}
       style={{ transform: `translate3d(${pos.x}px, ${pos.y}px, 0)`, width: BUBBLE_SIZE }}
     >
