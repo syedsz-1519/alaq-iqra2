@@ -136,7 +136,7 @@ function Home() {
         <section className="rounded-3xl border border-border bg-card p-6 shadow-elegant">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-display text-xl font-semibold">Bookmarks</h2>
-            <Link to="/quran" className="text-sm text-primary">
+            <Link to="/quran" search={{ tab: "bookmarks" }} className="text-sm text-primary">
               See all
             </Link>
           </div>

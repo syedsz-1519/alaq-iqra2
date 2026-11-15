@@ -1,11 +1,13 @@
 import { shareImage } from "@/lib/share";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { BookmarkCheck, CheckCircle2, Search, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { surahListQuery, surahTextUrl } from "@/lib/quran";
 import { CACHE_TEXT } from "@/lib/offline-cache";
-import { useBookmarks } from "@/lib/reading";
+import { isFinished, sortBookmarks, useBookmarks, useProgress, type BookmarkOrder } from "@/lib/reading";
+import { useStored } from "@/lib/storage";
 import { ErrorNotice, PageHeader } from "@/components/alaq/app-shell";
 import { ContinueReadingCard } from "@/components/alaq/continue-reading";
 import { OfflineIndicator } from "@/components/alaq/offline-badges";
@@ -13,7 +15,11 @@ import { QuranSections } from "@/components/alaq/quran-sections";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+type QuranTab = "surahs" | "bookmarks";
+
 export const Route = createFileRoute("/quran/")({
+  validateSearch: (s: Record<string, unknown>): { tab?: QuranTab } =>
+    s["tab"] === "bookmarks" ? { tab: "bookmarks" } : {},
   loader: ({ context }) => context.queryClient.ensureQueryData(surahListQuery()),
   head: ({ match }) => ({
     meta: [
@@ -51,7 +57,12 @@ function QuranIndex() {
   const { data: surahs } = useSuspenseQuery(surahListQuery());
   const [q, setQ] = useState("");
   const [bookmarks, setBookmarks] = useBookmarks();
+  const [progress] = useProgress();
+  const [order, setOrder] = useStored<BookmarkOrder>("alaq:bookmark-order", "recent");
+  const sortedMarks = useMemo(() => sortBookmarks(bookmarks, order), [bookmarks, order]);
   const saved = useSavedSurahs();
+  const { tab = "surahs" } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
 
   const filtered = useMemo(() => {
     const t = q.trim().toLowerCase();
@@ -77,7 +88,10 @@ function QuranIndex() {
 
       <ContinueReadingCard className="mb-6" />
 
-      <Tabs defaultValue="surahs">
+      <Tabs
+        value={tab}
+        onValueChange={(v) => navigate({ search: v === "bookmarks" ? { tab: "bookmarks" } : {}, replace: true })}
+      >
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <TabsList>
             <TabsTrigger value="surahs">Surahs</TabsTrigger>
@@ -97,12 +111,15 @@ function QuranIndex() {
 
         <TabsContent value="surahs">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((s) => (
+            {filtered.map((s) => {
+              const p = progress[s.number];
+              const done = isFinished(p);
+              return (
               <Link
                 key={s.number}
                 to="/quran/$surah"
                 params={{ surah: String(s.number) }}
-                search={{}}
+                search={p && !done && p.ayah > 1 ? { ayah: p.ayah } : {}}
                 className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-4 transition-colors hover:border-primary/40 hover:bg-secondary/60"
               >
                 <span className="grid size-11 shrink-0 rotate-45 place-items-center rounded-lg border border-gold/50 bg-gold/10">
@@ -116,10 +133,21 @@ function QuranIndex() {
                       <CheckCircle2 className="size-3.5 text-primary" aria-label="Saved offline" />
                     )}
                   </p>
+                  {p && (
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
+                        <div className={cn("h-full", done ? "bg-gold" : "bg-primary")} style={{ width: `${Math.round((p.ayah / p.total) * 100)}%` }} />
+                      </div>
+                      <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
+                        {done ? "Finished" : `Ayah ${p.ayah}`}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <span className="quran-text text-xl text-primary">{s.name.replace("سُورَةُ ", "")}</span>
               </Link>
-            ))}
+              );
+            })}
             {filtered.length === 0 && <p className="text-muted-foreground">No surah matches “{q}”.</p>}
           </div>
           {saved.size > 0 && (
@@ -139,9 +167,27 @@ function QuranIndex() {
               No bookmarks yet. Tap the bookmark icon on any ayah to save it here.
             </div>
           ) : (
+            <>
+            <div className="mb-3 flex items-center gap-2 text-xs">
+              <span className="text-muted-foreground">Sort:</span>
+              {(["recent", "quran"] as const).map((o) => (
+                <button
+                  key={o}
+                  type="button"
+                  aria-pressed={order === o}
+                  onClick={() => setOrder(o)}
+                  className={cn(
+                    "h-7 rounded-full border px-3 font-medium transition-colors",
+                    order === o ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:bg-secondary",
+                  )}
+                >
+                  {o === "recent" ? "Newest first" : "Quran order"}
+                </button>
+              ))}
+            </div>
             <div className="grid gap-3 md:grid-cols-2">
-              {bookmarks.map((b) => (
-                <div key={`${b.surah}:${b.ayah}`} className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4">
+              {sortedMarks.map((b) => (
+                <div key={`${b.surah}:${b.ayah}`} className="flex min-w-0 items-start gap-3 rounded-2xl border border-border bg-card p-4">
                   <Link
                     to="/quran/$surah"
                     params={{ surah: String(b.surah) }}
@@ -151,7 +197,15 @@ function QuranIndex() {
                     <p className="font-display font-semibold">
                       {b.englishName} <span className="font-sans text-sm text-gold">{b.surah}:{b.ayah}</span>
                     </p>
+                    {b.arabic && (
+                      <p lang="ar" dir="rtl" className="quran-text mt-1 truncate text-right text-lg leading-loose text-primary">
+                        {b.arabic}
+                      </p>
+                    )}
                     <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{b.preview}</p>
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      Saved {new Date(b.at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
+                    </p>
                   </Link>
                   <button
                     type="button"
@@ -164,6 +218,7 @@ function QuranIndex() {
                 </div>
               ))}
             </div>
+            </>
           )}
         </TabsContent>
       </Tabs>
