@@ -15,6 +15,7 @@ import { AudioPlayerProvider } from "@/components/alaq/audio-player";
 import { WelcomeGate } from "@/components/alaq/welcome-gate";
 import { ZaidBubble } from "@/components/alaq/zaid-bubble";
 import { ZaidProvider } from "@/components/alaq/zaid-provider";
+import { ZaidChatWidget } from "@/components/alaq/zaid-chat-widget";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/lib/auth";
 import { registerOfflineSupport } from "@/lib/pwa-register";
@@ -162,6 +163,7 @@ function RootComponent() {
               <Outlet />
             </AppShell>
             <ZaidBubble />
+            <ZaidChatWidget />
           </ZaidProvider>
           <WelcomeGate />
           <Toaster position="top-center" />
