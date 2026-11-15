@@ -265,6 +265,61 @@ function SurahReader() {
   const isPlaying = (ayah: number, withTranslation: boolean) =>
     player.playing && currentAyah === ayah && (player.voiceTranslation !== "none") === withTranslation;
 
+  /** One ayah in the Arabic-only page, with its number mark opening listen / bookmark / copy. */
+  const arabicAyah = (v: PageRow) => {
+    const active = currentAyah === v.numberInSurah;
+    const marked = bookmarks.some((b) => b.surah === n && b.ayah === v.numberInSurah);
+    return (
+                        <span
+                          key={v.numberInSurah}
+                          id={`ayah-${v.numberInSurah}`}
+                          data-ayah={v.numberInSurah}
+                          className={cn(
+                            "scroll-mt-48 rounded-lg transition-colors",
+                            active && "bg-gold/25",
+                            targetAyah === v.numberInSurah && !active && "bg-gold/15",
+                          )}
+                        >
+                          {v.arabic}{" "}
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button
+                                type="button"
+                                aria-label={`Ayah ${v.numberInSurah}: listen, bookmark or copy${marked ? " (bookmarked)" : ""}`}
+                                className={cn(
+                                  "ayah-mark relative whitespace-nowrap text-[0.7em] hover:opacity-70",
+                                  marked ? "text-lapis" : "text-gold",
+                                )}
+                              >
+                                ﴿{toArabicDigits(v.numberInSurah)}﴾
+                                {marked && (
+                                  <BookmarkCheck aria-hidden className="absolute -top-1.5 left-1/2 size-3 -translate-x-1/2 text-gold" />
+                                )}
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent align="center" className="w-56 p-1.5" dir="ltr">
+                              <p className="px-2 pb-1 pt-0.5 text-xs font-semibold text-muted-foreground">
+                                {meta.englishName} {n}:{v.numberInSurah}
+                              </p>
+                              <MenuBtn onClick={() => listen(v.numberInSurah, false)}>
+                                {isPlaying(v.numberInSurah, false) ? <Pause className="size-4" /> : <Play className="size-4" />}
+                                {isPlaying(v.numberInSurah, false) ? "Pause" : "Listen from here"}
+                              </MenuBtn>
+                              <MenuBtn onClick={() => onBookmark(v)}>
+                                {marked ? <BookmarkCheck className="size-4 text-gold" /> : <Bookmark className="size-4" />}
+                                {marked ? "Remove bookmark" : "Bookmark this ayah"}
+                              </MenuBtn>
+                              <MenuBtn onClick={() => onCopy(v)}>
+                                <Copy className="size-4" /> Copy ayah
+                              </MenuBtn>
+                            </PopoverContent>
+                          </Popover>{" "}
+                        </span>
+                      );
+  };
+  // In Al-Fatihah the Bismillah is ayah 1: it stands on its own line under the surah name, as in a printed mushaf.
+  const fatihaOpening = n === 1 ? rows[0] : undefined;
+
   const prevSurah = n > 1 ? surahs[n - 2] : null;
   const nextSurah = n < 114 ? surahs[n] : null;
 
@@ -465,6 +520,13 @@ function SurahReader() {
                       )}
                       <div aria-hidden className="bismillah-rule mx-auto mt-3 h-px w-40" />
                     </div>
+                  ) : fatihaOpening && paged ? (
+                    <div className="mt-4 text-center" aria-label="Bismillah — the first ayah of Al-Fatihah">
+                      <p dir="rtl" className="quran-text leading-[2.2]" style={{ fontSize: arabicFont(settings.arabicSize, 0.235) }}>
+                        {arabicAyah(fatihaOpening)}
+                      </p>
+                      <div aria-hidden className="bismillah-rule mx-auto mt-2 h-px w-40" />
+                    </div>
                   ) : n === 9 ? (
                     <p className="mt-4 text-center text-xs text-paper-muted">Surah At-Tawbah begins without the Bismillah.</p>
                   ) : null}
@@ -474,57 +536,7 @@ function SurahReader() {
               <div className="mt-5 flex-1">
                 {view === "arabic" ? (
                   <p dir="rtl" className="quran-text text-justify leading-[2.6] [text-align-last:center]" style={{ fontSize: arabicFont(settings.arabicSize, 0.235) }}>
-                    {page.map((v) => {
-                      const active = currentAyah === v.numberInSurah;
-                      const marked = bookmarks.some((b) => b.surah === n && b.ayah === v.numberInSurah);
-                      return (
-                        <span
-                          key={v.numberInSurah}
-                          id={`ayah-${v.numberInSurah}`}
-                          data-ayah={v.numberInSurah}
-                          className={cn(
-                            "scroll-mt-48 rounded-lg transition-colors",
-                            active && "bg-gold/25",
-                            targetAyah === v.numberInSurah && !active && "bg-gold/15",
-                          )}
-                        >
-                          {v.arabic}{" "}
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <button
-                                type="button"
-                                aria-label={`Ayah ${v.numberInSurah}: listen, bookmark or copy${marked ? " (bookmarked)" : ""}`}
-                                className={cn(
-                                  "ayah-mark relative whitespace-nowrap text-[0.7em] hover:opacity-70",
-                                  marked ? "text-lapis" : "text-gold",
-                                )}
-                              >
-                                ﴿{toArabicDigits(v.numberInSurah)}﴾
-                                {marked && (
-                                  <BookmarkCheck aria-hidden className="absolute -top-1.5 left-1/2 size-3 -translate-x-1/2 text-gold" />
-                                )}
-                              </button>
-                            </PopoverTrigger>
-                            <PopoverContent align="center" className="w-56 p-1.5" dir="ltr">
-                              <p className="px-2 pb-1 pt-0.5 text-xs font-semibold text-muted-foreground">
-                                {meta.englishName} {n}:{v.numberInSurah}
-                              </p>
-                              <MenuBtn onClick={() => listen(v.numberInSurah, false)}>
-                                {isPlaying(v.numberInSurah, false) ? <Pause className="size-4" /> : <Play className="size-4" />}
-                                {isPlaying(v.numberInSurah, false) ? "Pause" : "Listen from here"}
-                              </MenuBtn>
-                              <MenuBtn onClick={() => onBookmark(v)}>
-                                {marked ? <BookmarkCheck className="size-4 text-gold" /> : <Bookmark className="size-4" />}
-                                {marked ? "Remove bookmark" : "Bookmark this ayah"}
-                              </MenuBtn>
-                              <MenuBtn onClick={() => onCopy(v)}>
-                                <Copy className="size-4" /> Copy ayah
-                              </MenuBtn>
-                            </PopoverContent>
-                          </Popover>{" "}
-                        </span>
-                      );
-                    })}
+                    {page.filter((v) => !(fatihaOpening && v.numberInSurah === 1)).map(arabicAyah)}
                   </p>
                 ) : (
                   <ol className="divide-y divide-gold/30">
