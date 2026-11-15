@@ -9,12 +9,19 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export const getCurrentSession = createServerFn({
   method: "GET",
 }).handler(async () => {
-  const { data, error } = await supabase.auth.getSession();
-  if (error) {
-    console.error("[Auth] Session error:", error);
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      console.error("[Auth] Session error:", error);
+      return { session: null, user: null };
+    }
+    
+    return { session: data.session, user: data.session?.user ?? null };
+  } catch (err) {
+    console.error("[Auth] Unexpected session error:", err);
     return { session: null, user: null };
   }
-  return { session: data.session, user: data.session?.user ?? null };
 });
 
 /**
@@ -26,23 +33,48 @@ export const signInWithEmail = createServerFn({
   .inputType<{ email: string; password: string }>()
   .handler(async ({ email, password }) => {
     if (!email || !password) {
-      throw new Error("Email and password required");
+      throw new Error("Email and password are required.");
     }
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.toLowerCase().trim(),
-      password,
-    });
-
-    if (error) {
-      console.error("[Auth] Sign in error:", error);
-      throw new Error(error.message || "Failed to sign in");
+    if (password.length < 6) {
+      throw new Error("Password must be at least 6 characters.");
     }
 
-    return {
-      session: data.session,
-      user: data.user,
-    };
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.toLowerCase().trim(),
+        password,
+      });
+
+      if (error) {
+        console.error("[Auth] Sign in error:", error.message);
+        
+        // User-friendly error messages
+        if (error.message.includes("Invalid login credentials")) {
+          throw new Error("Invalid email or password. Please try again.");
+        }
+        if (error.message.includes("Email not confirmed")) {
+          throw new Error("Please confirm your email before signing in. Check your inbox.");
+        }
+        if (error.message.includes("too many requests")) {
+          throw new Error("Too many login attempts. Please try again in a few minutes.");
+        }
+        
+        throw new Error(error.message || "Failed to sign in.");
+      }
+
+      if (!data.session) {
+        throw new Error("Sign in successful but no session created. Please try again.");
+      }
+
+      return {
+        session: data.session,
+        user: data.user,
+      };
+    } catch (err) {
+      if (err instanceof Error) throw err;
+      throw new Error("Network error. Please check your connection and try again.");
+    }
   });
 
 /**
@@ -54,34 +86,68 @@ export const signUpWithEmail = createServerFn({
   .inputType<{ email: string; password: string; displayName?: string; teacher?: string }>()
   .handler(async ({ email, password, displayName, teacher }) => {
     if (!email || !password) {
-      throw new Error("Email and password required");
+      throw new Error("Email and password are required.");
     }
 
-    const { data, error } = await supabase.auth.signUp({
-      email: email.toLowerCase().trim(),
-      password,
-      options: {
-        data: {
-          display_name: displayName?.trim() || "",
-          teacher: teacher || "zaid",
+    if (password.length < 6) {
+      throw new Error("Password must be at least 6 characters.");
+    }
+
+    if (email.length > 254) {
+      throw new Error("Email is too long.");
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: email.toLowerCase().trim(),
+        password,
+        options: {
+          data: {
+            display_name: displayName?.trim() || "",
+            teacher: teacher || "zaid",
+          },
         },
-      },
-    });
+      });
 
-    if (error) {
-      console.error("[Auth] Sign up error:", error);
-      throw new Error(error.message || "Failed to create account");
+      if (error) {
+        console.error("[Auth] Sign up error:", error.message);
+        
+        if (error.message.includes("already registered")) {
+          throw new Error("This email is already registered. Sign in instead.");
+        }
+        if (error.message.includes("invalid email")) {
+          throw new Error("Please enter a valid email address.");
+        }
+        
+        throw new Error(error.message || "Failed to create account.");
+      }
+
+      // Auto-create profile entry (even if user not confirmed yet)
+      if (data.user?.id) {
+        try {
+          await supabaseAdmin
+            .from("profiles")
+            .insert({
+              id: data.user.id,
+              display_name: displayName?.trim() || "",
+              teacher: teacher || "zaid",
+            })
+            .select()
+            .single();
+        } catch (profileErr) {
+          console.error("[Auth] Profile creation error (non-blocking):", profileErr);
+          // Don't throw — signup is successful even if profile creation fails (profile table may not exist yet)
+        }
+      }
+
+      return {
+        session: data.session,
+        user: data.user,
+      };
+    } catch (err) {
+      if (err instanceof Error) throw err;
+      throw new Error("Network error. Please check your connection and try again.");
     }
-
-    // Create profile entry
-    if (data.user) {
-      await createUserProfile(data.user.id, displayName, teacher);
-    }
-
-    return {
-      session: data.session,
-      user: data.user,
-    };
   });
 
 /**
@@ -92,26 +158,35 @@ export const createUserProfile = createServerFn({
 })
   .inputType<{ userId: string; displayName?: string; teacher?: string }>()
   .handler(async ({ userId, displayName, teacher }) => {
-    const { data, error } = await supabaseAdmin
-      .from("profiles")
-      .upsert(
-        {
-          id: userId,
-          display_name: displayName?.trim() || "",
-          teacher: teacher || "zaid",
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "id" }
-      )
-      .select()
-      .single();
-
-    if (error) {
-      console.error("[Auth] Profile creation error:", error);
-      throw new Error(error.message || "Failed to create profile");
+    if (!userId) {
+      throw new Error("User ID is required.");
     }
 
-    return data;
+    try {
+      const { data, error } = await supabaseAdmin
+        .from("profiles")
+        .upsert(
+          {
+            id: userId,
+            display_name: displayName?.trim() || "",
+            teacher: teacher || "zaid",
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "id" }
+        )
+        .select()
+        .single();
+
+      if (error) {
+        console.error("[Auth] Profile creation error:", error.message);
+        throw new Error(error.message || "Failed to create profile.");
+      }
+
+      return data;
+    } catch (err) {
+      if (err instanceof Error) throw err;
+      throw new Error("Failed to create profile.");
+    }
   });
 
 /**
