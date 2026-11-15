@@ -22,6 +22,15 @@ dist-ssr
 .env.*.local
 !.env.example
 
+# Investor & Business Documents (Keep Private)
+INVESTOR_PITCH_GUIDE.md
+INVESTOR_ROADMAP.md
+PITCH_NOTES.md
+FUNDING_STRATEGY.md
+INVESTOR_CONTACTS.md
+PITCH_DECK.pptx
+PITCH_DECK.pdf
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
