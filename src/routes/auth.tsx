@@ -3,7 +3,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { Loader2, MailCheck } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import "@lovable.dev/cloud-auth-js/styles.css";
+import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/lib/auth";
 import { GoogleButton } from "@/components/alaq/google-button";
 import { TeacherPicker } from "@/components/alaq/teacher-ui";
@@ -17,7 +18,7 @@ import {
   signUpWithEmail,
   sendPasswordResetEmail,
   verifyOtp,
-} from "@/lib/auth.functions";
+} from "@/lib/auth-actions";
 
 type Search = { redirect?: string };
 
@@ -67,13 +68,14 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
-        await signUpWithEmail({
+        const { session } = await signUpWithEmail({
           email,
           password,
           displayName: name.trim(),
           teacher,
+          redirectTo: window.location.origin + target,
         });
-        setSent("confirm");
+        if (!session) setSent("confirm");
       } else if (mode === "signin") {
         if (teacher !== savedTeacher) localStorage.setItem(PENDING_TEACHER_KEY, teacher);
         await signInWithEmail({ email, password });
@@ -116,18 +118,10 @@ function AuthPage() {
       if (teacher !== savedTeacher) localStorage.setItem(PENDING_TEACHER_KEY, teacher);
       if (target !== "/") sessionStorage.setItem("alaq:after-auth", target);
 
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            access_type: "offline",
-            prompt: "consent",
-          },
-        },
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
       });
-
-      if (error) throw error;
+      if (result.error) throw result.error;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Google sign-in failed");
     }

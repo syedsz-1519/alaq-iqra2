@@ -14,3 +14,5 @@
 - One global audio player (`AudioPlayerProvider` in __root) so recitation continues across pages.
 - Offline Tajweed lessons speak through the device's Web Speech voice (`src/lib/device-voice.ts` + `useDeviceSpeech`), scripted only from bundled `tajweed-notes.ts` — no network or sign-in, so they work offline.
 - The teacher bubble's resting spot is stored as edge + height fraction (`src/lib/bubble-position.ts`) so it survives rotation and resizes.
+- Email sign-in/sign-up runs in the browser (`src/lib/auth-actions.ts`) and Google sign-in goes through `lovable.auth.signInWithOAuth` — a server-side sign-in never reaches the reader's device, and Cloud's managed Google needs the Lovable flow.
+- The `@lovable.dev/*` packages (vite-tanstack-config, ai-gateway, cloud-auth-js) must stay in package.json — vite.config.ts, AI features and Google sign-in import them, and the build fails without them.

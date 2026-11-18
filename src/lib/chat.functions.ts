@@ -16,19 +16,17 @@
  * }
  */
 
-import { createServerFn } from "@tanstack/react-start/server";
-import { createClient } from "@supabase/supabase-js";
-import { getHeader } from "@tanstack/react-start/server";
+import { createServerFn } from "@tanstack/react-start";
+import { getRequestHeader } from "@tanstack/react-start/server";
+import { z } from "zod";
 
-const SUPABASE_URL = process.env.SUPABASE_URL!;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const GROQ_API_KEY = process.env.GROQ_API_KEY!;
-
-if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  throw new Error("Missing Supabase env vars");
-}
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+// Read-only knowledge lookups. Loaded inside the handler so the admin client never
+// enters the browser bundle. The knowledge tables/RPCs are optional: when they are
+// missing, lookups simply return nothing and the reply says so.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Db = { rpc: (fn: string, args: Record<string, unknown>) => any; from: (t: string) => any };
+let supabase: Db;
+let GROQ_API_KEY: string | undefined;
 
 // Rate limiting store (in-memory for free tier; use Upstash for production)
 const rateLimitStore = new Map<
@@ -159,7 +157,7 @@ async function retrieveContext(
       if (chunk.kind === "hadith" && chunk.collection_number) {
         const [collection, number] = chunk.collection_number
           .split(":")
-          .map((x) => (isNaN(Number(x)) ? x : Number(x)));
+          .map((x: string) => (isNaN(Number(x)) ? x : Number(x)));
         const { data: hadith } = await supabase.rpc("get_hadith", {
           p_collection: collection,
           p_number: number,
@@ -192,8 +190,8 @@ function parseExactReference(
   if (verseMatch) {
     return {
       type: "quran",
-      surah: parseInt(verseMatch[1]),
-      ayah: parseInt(verseMatch[2]),
+      surah: parseInt(verseMatch[1] ?? "0"),
+      ayah: parseInt(verseMatch[2] ?? "0"),
     };
   }
 
@@ -206,7 +204,7 @@ function parseExactReference(
       return {
         type: "hadith",
         collection: collection.toLowerCase(),
-        number: parseInt(match[1]),
+        number: parseInt(match[1] ?? "0"),
       };
     }
   }
@@ -322,16 +320,22 @@ function formatContextAsResponse(context: SourceResult[], lang: string): string 
 export const chat = createServerFn({
   method: "POST",
 })
-  .inputType<{
-    message: string;
-    persona: "zaid" | "zara" | "text";
-    lang: "en" | "ur" | "hi";
-    history?: Array<{ role: "user" | "assistant"; content: string }>;
-  }>()
-  .handler(async (input) => {
-    const ip =
-      (getHeader("x-forwarded-for") as string)?.split(",")[0] ||
-      "127.0.0.1";
+  .inputValidator(
+    z.object({
+      message: z.string(),
+      persona: z.enum(["zaid", "zara", "text"]),
+      lang: z.enum(["en", "ur", "hi"]),
+      history: z
+        .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(2000) }))
+        .max(20)
+        .optional(),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    supabase = supabaseAdmin as unknown as Db;
+    GROQ_API_KEY = process.env["GROQ_API_KEY"];
+    const ip = getRequestHeader("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
 
     // Rate limiting
     if (!checkRateLimit(ip)) {

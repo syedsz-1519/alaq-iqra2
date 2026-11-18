@@ -31,7 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { chat } from "@/routes/api.chat.server";
+import { chat } from "@/lib/chat.functions";
 
 type Persona = "zaid" | "zara" | "text";
 type Lang = "en" | "ur" | "hi";
@@ -175,7 +175,7 @@ export function ZaidChatWidget() {
                 v.lang.includes("en") ||
                 v.lang.includes("ur");
 
-        const selectedVoice = voices.find(voiceFilter) || voices[0];
+        const selectedVoice = voices.find(voiceFilter) ?? voices[0] ?? null;
         utteranceRef.current.voice = selectedVoice;
       }
 
@@ -206,13 +206,15 @@ export function ZaidChatWidget() {
     try {
       // Call server function
       const response = await chat({
-        message: message.trim(),
-        persona,
-        lang,
-        history: messages.map((m) => ({
-          role: m.role,
-          content: m.content,
-        })),
+        data: {
+          message: message.trim(),
+          persona,
+          lang,
+          history: messages.map((m) => ({
+            role: m.role,
+            content: m.content,
+          })),
+        },
       });
 
       if (response.error) {

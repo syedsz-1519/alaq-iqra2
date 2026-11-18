@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { createFileRoute } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 
-export const Route = createFileRoute("/auth/callback")({
+export const Route = createFileRoute("/auth_/callback")({
   component: AuthCallback,
 });
 

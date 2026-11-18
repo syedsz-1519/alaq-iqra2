@@ -21,6 +21,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SourcesRouteImport } from './routes/sources'
 import { Route as ZaidRouteImport } from './routes/zaid'
+import { Route as AuthCallbackRouteImport } from './routes/auth_.callback'
 import { Route as DuasIndexRouteImport } from './routes/duas.index'
 import { Route as DuasIdRouteImport } from './routes/duas.$id'
 import { Route as HadithIndexRouteImport } from './routes/hadith.index'
@@ -91,6 +92,11 @@ const ZaidRoute = ZaidRouteImport.update({
   path: '/zaid',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth_/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DuasIndexRoute = DuasIndexRouteImport.update({
   id: '/duas/',
   path: '/duas/',
@@ -150,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/sources': typeof SourcesRoute
   '/zaid': typeof ZaidRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/duas/$id': typeof DuasIdRoute
   '/listen/$surah': typeof ListenSurahRoute
   '/quran/$surah': typeof QuranSurahRoute
@@ -173,6 +180,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/sources': typeof SourcesRoute
   '/zaid': typeof ZaidRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/duas/$id': typeof DuasIdRoute
   '/listen/$surah': typeof ListenSurahRoute
   '/quran/$surah': typeof QuranSurahRoute
@@ -197,6 +205,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/sources': typeof SourcesRoute
   '/zaid': typeof ZaidRoute
+  '/auth_/callback': typeof AuthCallbackRoute
   '/duas/$id': typeof DuasIdRoute
   '/listen/$surah': typeof ListenSurahRoute
   '/quran/$surah': typeof QuranSurahRoute
@@ -222,6 +231,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sources'
     | '/zaid'
+    | '/auth/callback'
     | '/duas/$id'
     | '/listen/$surah'
     | '/quran/$surah'
@@ -245,6 +255,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sources'
     | '/zaid'
+    | '/auth/callback'
     | '/duas/$id'
     | '/listen/$surah'
     | '/quran/$surah'
@@ -268,6 +279,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sources'
     | '/zaid'
+    | '/auth_/callback'
     | '/duas/$id'
     | '/listen/$surah'
     | '/quran/$surah'
@@ -292,6 +304,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   SourcesRoute: typeof SourcesRoute
   ZaidRoute: typeof ZaidRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
   DuasIdRoute: typeof DuasIdRoute
   ListenSurahRoute: typeof ListenSurahRoute
   QuranSurahRoute: typeof QuranSurahRoute
@@ -389,6 +402,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ZaidRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth_/callback': {
+      id: '/auth_/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/duas/': {
       id: '/duas/'
       path: '/duas'
@@ -468,6 +488,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   SourcesRoute: SourcesRoute,
   ZaidRoute: ZaidRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
   DuasIdRoute: DuasIdRoute,
   ListenSurahRoute: ListenSurahRoute,
   QuranSurahRoute: QuranSurahRoute,
