@@ -260,7 +260,7 @@ export function ZaidChatWidget() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 rounded-full bg-primary p-4 text-primary-foreground shadow-lg hover:shadow-xl transition-shadow"
+        className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-4 z-40 rounded-full bg-primary p-4 text-primary-foreground shadow-lg transition-shadow hover:shadow-xl lg:bottom-6"
         aria-label="Open Zaid chat"
       >
         <MessageCircle className="size-6" />
@@ -269,7 +269,7 @@ export function ZaidChatWidget() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex h-[600px] w-96 flex-col rounded-2xl border border-border bg-card shadow-xl">
+    <div className="fixed inset-x-3 top-16 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-50 flex flex-col rounded-2xl border border-border bg-card shadow-xl sm:right-auto sm:left-4 sm:top-auto sm:h-[min(600px,calc(100dvh-7rem))] sm:w-96 lg:bottom-6">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border p-4">
         <div className="flex items-center gap-2">
@@ -284,6 +284,7 @@ export function ZaidChatWidget() {
         <button
           onClick={() => setIsOpen(false)}
           className="rounded-full p-2 hover:bg-muted"
+          aria-label="Close chat"
         >
           <X className="size-4" />
         </button>
