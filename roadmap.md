@@ -92,3 +92,13 @@
 - [ ] Analytics: page turns and reading-session completion on the 10-ayah pages
 - [ ] AI recitation plan: pick a surah + preferences, get a page-by-page plan with pacing tips (sign-in needed)
 - [ ] Full app audit (attached brief): Phase 1 audit table first, wait for approval before big changes (waiting on user to confirm)
+
+## Request 2026-11-18
+- [x] Quran reading pages: 15 ayahs per page (was 10)
+- [ ] Home page: more illustrative, shows people how to use Alaq
+- [x] Remove "Sign in with Lovable" button (already gone; only Google + email remain)
+- [ ] Run Alaq without Lovable (user's own Supabase) — waiting on user to say what this should mean
+- [ ] Widgets: Salah reminder (prayer times) + Hijri calendar
+- [ ] Adhan call at prayer time in beautiful voices
+- [ ] Ramadan special section (all Ramadan info in one place)
+- [ ] Better dua cards

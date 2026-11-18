@@ -29,7 +29,7 @@ export const planInputSchema = z.object({
 });
 export type PlanInput = z.infer<typeof planInputSchema>;
 
-/** One 10-ayah page of the surah, numbered from 1 as shown in the reader. */
+/** One reading page of the surah, numbered from 1 as shown in the reader. */
 export type PlanPage = { page: number; from: number; to: number; words: number };
 
 export function planPages(ayahWordCounts: number[], perPage = AYAHS_PER_PAGE): PlanPage[] {

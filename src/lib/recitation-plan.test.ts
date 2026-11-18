@@ -4,12 +4,12 @@ import { estimateMinutes, normalizePlan, planPages, type PlanInput } from "./rec
 const input: PlanInput = { surah: 2, goal: "recite", level: "intermediate", minutesPerDay: 15, daysPerWeek: 5, lang: "en" };
 
 describe("recitation plan pages", () => {
-  it("splits the surah into the same 10-ayah pages as the reader", () => {
-    const pages = planPages(Array.from({ length: 23 }, () => 4));
+  it("splits the surah into the same 15-ayah pages as the reader", () => {
+    const pages = planPages(Array.from({ length: 33 }, () => 4));
     expect(pages.map((p) => [p.page, p.from, p.to, p.words])).toEqual([
-      [1, 1, 10, 40],
-      [2, 11, 20, 40],
-      [3, 21, 23, 12],
+      [1, 1, 15, 60],
+      [2, 16, 30, 60],
+      [3, 31, 33, 12],
     ]);
   });
 
@@ -19,7 +19,7 @@ describe("recitation plan pages", () => {
 });
 
 describe("checking the AI plan", () => {
-  const pages = planPages(Array.from({ length: 30 }, () => 5));
+  const pages = planPages(Array.from({ length: 45 }, () => 5)); // 3 pages of 15
 
   it("drops made-up pages and keeps every real page exactly once", () => {
     const plan = normalizePlan(

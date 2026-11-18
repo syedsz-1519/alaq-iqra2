@@ -3,7 +3,7 @@
 export type PageVerse = { numberInSurah: number; arabic: string; translation?: string | undefined };
 
 /** Ayahs on each mushaf page — a steady count makes it easy to recite page by page. */
-export const AYAHS_PER_PAGE = 10;
+export const AYAHS_PER_PAGE = 15;
 
 /**
  * Groups ayahs into pages of a fixed number of ayahs, in order. Every ayah appears exactly once;
@@ -19,7 +19,7 @@ export function paginate<T extends PageVerse>(verses: T[], perPage = AYAHS_PER_P
 /** Zero-based page that holds this ayah. */
 export const pageOfAyah = (ayah: number, perPage = AYAHS_PER_PAGE) => Math.max(0, Math.floor((ayah - 1) / perPage));
 
-/** Number of 10-ayah pages in a surah. */
+/** Number of reading pages in a surah. */
 export const pageCount = (totalAyahs: number, perPage = AYAHS_PER_PAGE) => Math.max(1, Math.ceil(totalAyahs / perPage));
 
 /** First and last ayah on a zero-based page. */

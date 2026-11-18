@@ -128,7 +128,7 @@ function SurahReader() {
       })),
     [verses, lang, extraData],
   );
-  // Both views are split into pages of 10 ayahs, shown one page at a time for reciting.
+  // Both views are split into pages of AYAHS_PER_PAGE (15) ayahs, shown one page at a time for reciting.
   // Only Arabic-only reading gets the ornate mushaf frame.
   const pages = useMemo(() => paginate(rows), [rows]);
   const paged = view === "arabic";
@@ -141,7 +141,7 @@ function SurahReader() {
   /** Set once the reader turns a page, scrolls or listens — only then does the saved spot move. */
   const interacted = useRef(false);
 
-  // Remember where the reader is, per surah (ayah + 10-ayah page) and as the global "continue reading" spot.
+  // Remember where the reader is, per surah (ayah + reading page) and as the global "continue reading" spot.
   const saveSpot = useCallback(
     (ayah: number) => {
       const map = readStored<ProgressMap>(KEYS.progress, {});
@@ -190,7 +190,7 @@ function SurahReader() {
     });
   }, [n, view, totalPages]);
 
-  /** Shows another 10-ayah page. A jump (bookmark, go-to) only peeks; every other turn saves the new page. */
+  /** Shows another reading page. A jump (bookmark, go-to) only peeks; every other turn saves the new page. */
   const turnPage = useCallback(
     (to: number, method: "button" | "swipe" | "keyboard" | "audio" | "jump" | "resume", focusAyah?: number) => {
       const next = Math.max(0, Math.min(to, totalPages - 1));
@@ -801,7 +801,7 @@ function SurahReader() {
   );
 }
 
-/** Previous / next 10-ayah page, with where you are in the surah. */
+/** Previous / next reading page, with where you are in the surah. */
 function PageTurner({
   page,
   total,

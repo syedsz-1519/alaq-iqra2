@@ -16,7 +16,7 @@ export type SurahProgress = {
   ayah: number;
   total: number;
   at: number;
-  /** Zero-based 10-ayah page the reader was on (older saves derive it from the ayah). */
+  /** Zero-based page the reader was on when saved (informational; the page size can change, so resume uses the ayah). */
   page?: number;
 };
 export type ProgressMap = Record<string, SurahProgress>;
@@ -50,11 +50,12 @@ export function resumeAyah(map: ProgressMap, surah: number): number | null {
   return p && p.ayah > 1 && p.ayah < p.total ? p.ayah : null;
 }
 
-/** The 10-ayah page to reopen in a surah, or null when there is nothing to resume. */
+/** The reading page to reopen in a surah, or null when there is nothing to resume. */
 export function resumePage(map: ProgressMap, surah: number): number | null {
   const p = map[surah];
   if (!p || p.ayah >= p.total) return null;
-  const page = p.page ?? pageOfAyah(p.ayah);
+  // Always work it out from the ayah, so saves made with an older page size still open the right page.
+  const page = pageOfAyah(p.ayah);
   return page > 0 || p.ayah > 1 ? page : null;
 }
 
